@@ -1,0 +1,7 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "outFile": "mandelbrot.js",
+        "strict": true
+    }
+}

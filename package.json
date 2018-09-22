@@ -1,0 +1,11 @@
+{
+  "name": "mandelbrot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Lukasz Patalas <lpatalas@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^3.0.3"
+  }
+}
