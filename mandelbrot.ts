@@ -11,6 +11,11 @@ type Parameters = {
     maxIterations: number;
 }
 
+const lerp = (a: number, b: number, x: number): number =>
+    x < 0 ? a
+    : x > 1 ? b
+    : a + (x * (b - a));
+
 function drawMandelbrot(containerElementId: string, parameters: Parameters) {
     const container = document.querySelector(containerElementId);
     if (!container) {
@@ -71,11 +76,6 @@ function drawMandelbrot(containerElementId: string, parameters: Parameters) {
         
         return maxIterations;
     };
-
-    const lerp = (a: number, b: number, x: number): number =>
-        x < 0 ? a
-        : x > 1 ? b
-        : a + (x * (b - a));
 
     const cxmin = parameters.bounds.xMin;
     const cxmax = parameters.bounds.xMax;

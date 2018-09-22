@@ -1,4 +1,9 @@
 "use strict";
+var lerp = function (a, b, x) {
+    return x < 0 ? a
+        : x > 1 ? b
+            : a + (x * (b - a));
+};
 function drawMandelbrot(containerElementId, parameters) {
     var container = document.querySelector(containerElementId);
     if (!container) {
@@ -47,11 +52,6 @@ function drawMandelbrot(containerElementId, parameters) {
             }
         }
         return maxIterations;
-    };
-    var lerp = function (a, b, x) {
-        return x < 0 ? a
-            : x > 1 ? b
-                : a + (x * (b - a));
     };
     var cxmin = parameters.bounds.xMin;
     var cxmax = parameters.bounds.xMax;
