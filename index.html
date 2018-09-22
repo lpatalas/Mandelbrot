@@ -68,20 +68,18 @@
             </div>
             <form name="settingsForm" class="settingsContainer" onsubmit="onClickRender()">
                 <div class="settingsRow">
-                    <label>Xmin:</label>
-                    <input id="XMin" value="-2.5" type="number" step="0.05">
-                    <label>Xmax:</label>
-                    <input id="XMax" value="1.5" type="number" step="0.05">
+                    <label>X:</label>
+                    <input id="XPos" value="-0.5" type="number" step="0.05">
+                    <label>Y:</label>
+                    <input id="YPos" value="0" type="number" step="0.05">
                 </div>
                 <div class="settingsRow">
-                    <label>Ymin:</label>
-                    <input id="YMin" value="-1.25" type="number" step="0.05">
-                    <label>Ymax:</label>
-                    <input id="YMax" value="1.25" type="number" step="0.05">
+                    <label>Scale:</label>
+                    <input id="Scale" value="4" type="number" step="0.05">
                 </div>
                 <div class="settingsRow">
                     <label>Max Iterations:</label>
-                    <input id="MaxIterations" value="100" type="number" step="1">
+                    <input id="MaxIterations" value="50" type="number" step="1">
                 </div>
                 <div class="settingsRow">
                     <input type="button" value="RENDER" onclick="onClickRender()">
@@ -105,28 +103,20 @@
 
             function getParameters() {
                 return {
-                    bounds: {
-                        xMin: getIntInput('XMin'),
-                        xMax: getIntInput('XMax'),
-                        yMin: getIntInput('YMin'),
-                        yMax: getIntInput('YMax'),
+                    maxIterations: getIntInput('MaxIterations'),
+                    position: {
+                        x: getIntInput('XPos'),
+                        y: getIntInput('YPos')
                     },
-                    maxIterations: getIntInput('MaxIterations')
+                    scale: getIntInput('Scale')
                 };
             }
 
-            function onClickRender() {
-                const parameters = {
-                    bounds: {
-                        xMin: getIntInput('XMin'),
-                        xMax: getIntInput('XMax'),
-                        yMin: getIntInput('YMin'),
-                        yMax: getIntInput('YMax'),
-                    },
-                    maxIterations: getIntInput('MaxIterations')
-                };
+            let currentParams;
 
-                drawMandelbrot('.canvasContainer', parameters);
+            function onClickRender() {
+                currentParams = getParameters();
+                drawMandelbrot('.canvasContainer', currentParams);
             }
 
             const canvas = document.getElementById('canvas');
@@ -137,10 +127,14 @@
             function updateSelection() {
                 const selectionElement = document.getElementById('selection');
                 selectionElement.style.display = 'block';
+
+                const w = Math.max(startX, endX) - Math.min(startX, endX);
+                const h = Math.max(startY, endY) - Math.min(startY, endY);
+
                 selectionElement.style.left = Math.min(startX, endX);
                 selectionElement.style.top = Math.min(startY, endY);
-                selectionElement.style.width = Math.max(startX, endX) - Math.min(startX, endX);
-                selectionElement.style.height = Math.max(startY, endY) - Math.min(startY, endY);
+                selectionElement.style.width = w;
+                selectionElement.style.height = h;
             }
 
             canvas.addEventListener('pointerdown', e => {
@@ -158,7 +152,11 @@
                 }
 
                 endX = e.offsetX;
-                endY = e.offsetY;
+
+                const w = endX - startX;
+                const h = w * (canvas.height / canvas.width);
+                endY = startY + h;
+
                 updateSelection()
             });
             canvas.addEventListener('pointerup', e => {
@@ -169,16 +167,23 @@
             });
 
             function OnZoom() {
-                const p = getParameters();
-                const xMin = lerp(p.bounds.xMin, p.bounds.xMax, Math.min(startX, endX) / canvas.width);
-                const xMax = lerp(p.bounds.xMin, p.bounds.xMax, Math.max(startX, endX) / canvas.width);
-                const yMin = lerp(p.bounds.yMin, p.bounds.yMax, Math.min(startY, endY) / canvas.height);
-                const yMax = lerp(p.bounds.yMin, p.bounds.yMax, Math.max(startY, endY) / canvas.height);
+                const p = currentParams;
 
-                setIntInput('XMin', xMin);
-                setIntInput('XMax', xMax);
-                setIntInput('YMin', yMin);
-                setIntInput('YMax', yMax);
+                const xMin = Math.min(startX, endX) / canvas.width;
+                const xMax = Math.max(startX, endX) / canvas.width;
+                const yMin = Math.min(startY, endY) / canvas.height;
+                const yMax = Math.max(startY, endY) / canvas.height;
+
+                const xCenter = (xMin + (xMax - xMin) / 2) * 2 - 1;
+                const yCenter = (yMin + (yMax - yMin) / 2) * 2 - 1;
+
+                const aspect = canvas.height / canvas.width;
+                const xx = p.position.x + xCenter * p.scale * 0.5;
+                const yy = p.position.y + yCenter * p.scale * 0.5 * aspect;
+
+                setIntInput('XPos', xx);
+                setIntInput('YPos', yy);
+                setIntInput('Scale', (xMax - xMin) * p.scale);
             }
 
             function OnCancelZoom() {

@@ -53,10 +53,11 @@ function drawMandelbrot(containerElementId, parameters) {
         }
         return maxIterations;
     };
-    var cxmin = parameters.bounds.xMin;
-    var cxmax = parameters.bounds.xMax;
-    var cymin = parameters.bounds.yMin;
-    var cymax = parameters.bounds.yMax;
+    var cxmin = parameters.position.x - parameters.scale / 2;
+    var cxmax = parameters.position.x + parameters.scale / 2;
+    var aspectRatio = screenH / screenW;
+    var cymin = parameters.position.y - parameters.scale / 2 * aspectRatio;
+    var cymax = parameters.position.y + parameters.scale / 2 * aspectRatio;
     for (var x = 0; x < screenW; x++) {
         for (var y = 0; y < screenH; y++) {
             var cx = lerp(cxmin, cxmax, x / screenW);

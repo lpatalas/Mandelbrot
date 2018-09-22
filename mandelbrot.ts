@@ -2,13 +2,9 @@
 type Complex = { a: number; b: number };
 
 type Parameters = {
-    bounds: {
-        xMin: number;
-        xMax: number;
-        yMin: number;
-        yMax: number;
-    };
     maxIterations: number;
+    position: { x: number; y: number; };
+    scale: 4;
 }
 
 const lerp = (a: number, b: number, x: number): number =>
@@ -77,10 +73,12 @@ function drawMandelbrot(containerElementId: string, parameters: Parameters) {
         return maxIterations;
     };
 
-    const cxmin = parameters.bounds.xMin;
-    const cxmax = parameters.bounds.xMax;
-    const cymin = parameters.bounds.yMin;
-    const cymax = parameters.bounds.yMax;
+    const cxmin = parameters.position.x - parameters.scale / 2;
+    const cxmax = parameters.position.x + parameters.scale / 2;
+
+    const aspectRatio = screenH / screenW;
+    const cymin = parameters.position.y - parameters.scale / 2 * aspectRatio;
+    const cymax = parameters.position.y + parameters.scale / 2 * aspectRatio;
 
     for (let x = 0; x < screenW; x++) {
         for (let y = 0; y < screenH; y++) {
