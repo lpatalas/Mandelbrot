@@ -1,8 +1,32 @@
 
 type Complex = { a: number; b: number };
 
-function drawMandelbrot(canvasElementId: string) {
-    const canvas = document.getElementById(canvasElementId) as HTMLCanvasElement;
+type Parameters = {
+    bounds: {
+        xMin: number;
+        xMax: number;
+        yMin: number;
+        yMax: number;
+    };
+    maxIterations: number;
+}
+
+function drawMandelbrot(containerElementId: string, parameters: Parameters) {
+    const container = document.querySelector(containerElementId);
+    if (!container) {
+        throw new Error(`Can't find container element '${containerElementId}'`);
+    }
+
+    const canvasSelector = `${containerElementId} > canvas`;
+    const canvasElement = document.querySelector(canvasSelector);
+    if (!canvasElement) {
+        throw new Error(`Can't find canvas using selector: ${canvasSelector}`);
+    }
+
+    const canvas = canvasElement as HTMLCanvasElement;
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+
     const context = canvas.getContext('2d');
     if (!context) {
         console.error("Can't get canvas context");
@@ -53,18 +77,17 @@ function drawMandelbrot(canvasElementId: string) {
         : x > 1 ? b
         : a + (x * (b - a));
 
-    const maxIterations = 100;
-    const cxmin = -2.5;
-    const cxmax = 1.5;
-    const cymin = -1.25;
-    const cymax = 1.25;
+    const cxmin = parameters.bounds.xMin;
+    const cxmax = parameters.bounds.xMax;
+    const cymin = parameters.bounds.yMin;
+    const cymax = parameters.bounds.yMax;
 
     for (let x = 0; x < screenW; x++) {
         for (let y = 0; y < screenH; y++) {
             const cx = lerp(cxmin, cxmax, x / screenW);
             const cy = lerp(cymin, cymax, y / screenH);
-            const i = iterate(cx, cy, maxIterations);
-            const c = lerp(0, 255, i / maxIterations);
+            const i = iterate(cx, cy, parameters.maxIterations);
+            const c = lerp(0, 255, i / parameters.maxIterations);
             setPixel(x, y, `rgb(${c}, ${c}, ${c})`);
         }
     }

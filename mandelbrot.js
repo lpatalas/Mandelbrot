@@ -1,6 +1,17 @@
 "use strict";
-function drawMandelbrot(canvasElementId) {
-    var canvas = document.getElementById(canvasElementId);
+function drawMandelbrot(containerElementId, parameters) {
+    var container = document.querySelector(containerElementId);
+    if (!container) {
+        throw new Error("Can't find container element '" + containerElementId + "'");
+    }
+    var canvasSelector = containerElementId + " > canvas";
+    var canvasElement = document.querySelector(canvasSelector);
+    if (!canvasElement) {
+        throw new Error("Can't find canvas using selector: " + canvasSelector);
+    }
+    var canvas = canvasElement;
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
     var context = canvas.getContext('2d');
     if (!context) {
         console.error("Can't get canvas context");
@@ -42,17 +53,16 @@ function drawMandelbrot(canvasElementId) {
             : x > 1 ? b
                 : a + (x * (b - a));
     };
-    var maxIterations = 100;
-    var cxmin = -2.5;
-    var cxmax = 1.5;
-    var cymin = -1.25;
-    var cymax = 1.25;
+    var cxmin = parameters.bounds.xMin;
+    var cxmax = parameters.bounds.xMax;
+    var cymin = parameters.bounds.yMin;
+    var cymax = parameters.bounds.yMax;
     for (var x = 0; x < screenW; x++) {
         for (var y = 0; y < screenH; y++) {
             var cx = lerp(cxmin, cxmax, x / screenW);
             var cy = lerp(cymin, cymax, y / screenH);
-            var i = iterate(cx, cy, maxIterations);
-            var c = lerp(0, 255, i / maxIterations);
+            var i = iterate(cx, cy, parameters.maxIterations);
+            var c = lerp(0, 255, i / parameters.maxIterations);
             setPixel(x, y, "rgb(" + c + ", " + c + ", " + c + ")");
         }
     }
