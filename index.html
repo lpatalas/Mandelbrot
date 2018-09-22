@@ -166,6 +166,11 @@
                 console.log({ startX, startY, endX, endY });
             });
 
+            function hideSelection() {
+                const selectionElement = document.getElementById('selection');
+                selectionElement.style.display = 'none';
+            }
+
             function OnZoom() {
                 const p = currentParams;
 
@@ -184,11 +189,13 @@
                 setIntInput('XPos', xx);
                 setIntInput('YPos', yy);
                 setIntInput('Scale', (xMax - xMin) * p.scale);
+
+                hideSelection();
+                onClickRender();
             }
 
             function OnCancelZoom() {
-                const selectionElement = document.getElementById('selection');
-                selectionElement.style.display = 'none';
+                hideSelection();
             }
         </script>
     </body>
