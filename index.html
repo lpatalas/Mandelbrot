@@ -37,7 +37,15 @@
             }
             #canvas {
                 height: 100%;
+                user-select: none;
                 width: 100%;
+            }
+            #selection {
+                border-color: red;
+                border-style: solid;
+                border-width: 1px;
+                display: none;
+                position: absolute;
             }
         </style>
     </head>
@@ -68,6 +76,7 @@
                 </div>
             </form>
         </div>
+        <div id="selection"></div>
         
         <script src="mandelbrot.js" type="text/javascript"></script>
         <script type="text/javascript">
@@ -87,6 +96,45 @@
 
                 drawMandelbrot('.canvasContainer', parameters);
             }
+
+            const canvas = document.getElementById('canvas');
+
+            let isSelecting = false;
+            let startX, startY, endX, endY;
+
+            function updateSelection() {
+                const selectionElement = document.getElementById('selection');
+                selectionElement.style.display = 'block';
+                selectionElement.style.left = Math.min(startX, endX);
+                selectionElement.style.top = Math.min(startY, endY);
+                selectionElement.style.width = Math.max(startX, endX) - Math.min(startX, endX);
+                selectionElement.style.height = Math.max(startY, endY) - Math.min(startY, endY);
+            }
+
+            canvas.addEventListener('pointerdown', e => {
+                canvas.setPointerCapture(e.pointerId);
+
+                isSelecting = true;
+                startX = e.offsetX;
+                startY = e.offsetY;
+                endX = startX;
+                endY = startY;
+            });
+            canvas.addEventListener('pointermove', e => {
+                if (!isSelecting) {
+                    return;
+                }
+
+                endX = e.offsetX;
+                endY = e.offsetY;
+                updateSelection()
+            });
+            canvas.addEventListener('pointerup', e => {
+                canvas.releasePointerCapture(e.pointerId);
+                isSelecting = false;
+
+                console.log({ startX, startY, endX, endY });
+            });
         </script>
     </body>
 </html>
