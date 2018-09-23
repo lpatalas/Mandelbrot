@@ -1,7 +1,7 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "outFile": "index.js",
+        "outFile": "src/index.js",
         "strict": true
     }
 }
