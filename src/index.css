@@ -50,8 +50,6 @@ body {
     background-color: #800;
     border-color: #f00;
     border-style: solid;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
     border-width: 1px;
     bottom: 40px;
     cursor: move;
