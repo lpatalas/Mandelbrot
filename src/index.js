@@ -179,13 +179,17 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
     var onCancelZoom = function () {
         hideSelection();
     };
-    var hookOnClick = function (buttonId, onClick) {
-        var selector = "#" + selectionElementId + " input[type='button']#" + buttonId;
-        var inputElement = document.querySelector(selector);
-        if (!inputElement || !(inputElement instanceof HTMLInputElement)) {
-            throw new Error("Can't find input element: " + selector);
+    var hookOnClick = function (elementId, onClick) {
+        var selector = "#" + selectionElementId + " #" + elementId;
+        var element = document.querySelector(selector);
+        if (!element || !(element instanceof HTMLElement)) {
+            throw new Error("Can't find element: " + selector);
         }
-        inputElement.addEventListener('click', onClick);
+        element.addEventListener('click', function (e) {
+            e.preventDefault();
+            onClick(e);
+            return false;
+        });
     };
     hookOnClick('ok', onZoom);
     hookOnClick('cancel', onCancelZoom);

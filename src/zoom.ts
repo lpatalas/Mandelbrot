@@ -93,14 +93,18 @@ function initializeZoom(parameters: Parameters, canvasElementId: string, selecti
         hideSelection();
     }
 
-    const hookOnClick = (buttonId: string, onClick: (e: MouseEvent) => void) => {
-        const selector = `#${selectionElementId} input[type='button']#${buttonId}`;
-        const inputElement = document.querySelector(selector);
-        if (!inputElement || !(inputElement instanceof HTMLInputElement)) {
-            throw new Error(`Can't find input element: ${selector}`)
+    const hookOnClick = (elementId: string, onClick: (e: MouseEvent) => void) => {
+        const selector = `#${selectionElementId} #${elementId}`;
+        const element = document.querySelector(selector);
+        if (!element || !(element instanceof HTMLElement)) {
+            throw new Error(`Can't find element: ${selector}`)
         }
 
-        inputElement.addEventListener('click', onClick);
+        element.addEventListener('click', e => {
+            e.preventDefault();
+            onClick(e);
+            return false;
+        });
     }
 
     hookOnClick('ok', onZoom);
