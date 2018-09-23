@@ -1,10 +1,5 @@
 ///<reference path="complex.ts" />
-
-type Parameters = {
-    maxIterations: number;
-    position: { x: number; y: number; };
-    scale: 4;
-}
+///<reference path="parameters.ts" />
 
 const lerp = (a: number, b: number, x: number): number =>
     x < 0 ? a

@@ -14,7 +14,25 @@ var csquare = function (c) {
 var cabs = function (c) {
     return Math.sqrt(c.a * c.a + c.b * c.b);
 };
+function safeParseInt(value, defaultValue) {
+    return value ? parseInt(value, 10) : defaultValue;
+}
+function safeParseFloat(value, defaultValue) {
+    return value ? parseFloat(value) : defaultValue;
+}
+function getCurrentParameters() {
+    var urlParams = new URLSearchParams(location.search.substr(1));
+    return {
+        maxIterations: safeParseInt(urlParams.get('maxIter'), 50),
+        position: {
+            x: safeParseFloat(urlParams.get('x'), -0.5),
+            y: safeParseFloat(urlParams.get('y'), 0)
+        },
+        scale: safeParseFloat(urlParams.get('scale'), 4)
+    };
+}
 ///<reference path="complex.ts" />
+///<reference path="parameters.ts" />
 var lerp = function (a, b, x) {
     return x < 0 ? a
         : x > 1 ? b
@@ -88,4 +106,87 @@ function drawMandelbrot(containerElementId, parameters) {
     }
     var values = computeMandelbrot(parameters, canvas.width, canvas.height);
     renderMandelbrot(context, values);
+}
+///<reference path="parameters.ts" />
+function initializeZoom(parameters, canvasElementId, selectionElementId) {
+    var canvas = document.getElementById(canvasElementId);
+    if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
+        throw new Error("Can't find canvas element: " + canvasElementId);
+    }
+    var isSelecting = false;
+    var startX;
+    var startY;
+    var endX;
+    var endY;
+    function findSelectionElement() {
+        var selectionElement = document.getElementById(selectionElementId);
+        if (!selectionElement) {
+            throw new Error("Can't find selection element: " + selectionElementId);
+        }
+        return selectionElement;
+    }
+    function updateSelection() {
+        var selectionElement = findSelectionElement();
+        selectionElement.style.display = 'block';
+        var w = Math.max(startX, endX) - Math.min(startX, endX);
+        var h = Math.max(startY, endY) - Math.min(startY, endY);
+        selectionElement.style.left = Math.min(startX, endX) + "px";
+        selectionElement.style.top = Math.min(startY, endY) + "px";
+        selectionElement.style.width = w + "px";
+        selectionElement.style.height = h + "px";
+    }
+    canvas.addEventListener('pointerdown', function (e) {
+        canvas.setPointerCapture(e.pointerId);
+        isSelecting = true;
+        startX = e.offsetX;
+        startY = e.offsetY;
+        endX = startX;
+        endY = startY;
+    });
+    canvas.addEventListener('pointermove', function (e) {
+        if (!isSelecting) {
+            return;
+        }
+        endX = e.offsetX;
+        var w = endX - startX;
+        var h = w * (canvas.height / canvas.width);
+        endY = startY + h;
+        updateSelection();
+    });
+    canvas.addEventListener('pointerup', function (e) {
+        canvas.releasePointerCapture(e.pointerId);
+        isSelecting = false;
+        console.log({ startX: startX, startY: startY, endX: endX, endY: endY });
+    });
+    var hideSelection = function () {
+        var selectionElement = findSelectionElement();
+        selectionElement.style.display = 'none';
+    };
+    var onZoom = function () {
+        var p = parameters;
+        var xMin = Math.min(startX, endX) / canvas.width;
+        var xMax = Math.max(startX, endX) / canvas.width;
+        var yMin = Math.min(startY, endY) / canvas.height;
+        var yMax = Math.max(startY, endY) / canvas.height;
+        var xCenter = (xMin + (xMax - xMin) / 2) * 2 - 1;
+        var yCenter = (yMin + (yMax - yMin) / 2) * 2 - 1;
+        var aspect = canvas.height / canvas.width;
+        var xx = p.position.x + xCenter * p.scale * 0.5;
+        var yy = p.position.y + yCenter * p.scale * 0.5 * aspect;
+        var s = (xMax - xMin) * p.scale;
+        window.location.search = "?x=" + xx + "&y=" + yy + "&scale=" + s + "&maxIter=" + p.maxIterations;
+    };
+    var onCancelZoom = function () {
+        hideSelection();
+    };
+    var hookOnClick = function (buttonId, onClick) {
+        var selector = "#" + selectionElementId + " input[type='button']#" + buttonId;
+        var inputElement = document.querySelector(selector);
+        if (!inputElement || !(inputElement instanceof HTMLInputElement)) {
+            throw new Error("Can't find input element: " + selector);
+        }
+        inputElement.addEventListener('click', onClick);
+    };
+    hookOnClick('ok', onZoom);
+    hookOnClick('cancel', onCancelZoom);
 }

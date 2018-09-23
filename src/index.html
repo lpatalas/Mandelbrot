@@ -10,118 +10,16 @@
         </div>
         <div id="selection">
             <div class="selectionButtons">
-                <input type="button" value="Zoom" onclick="OnZoom()">
-                <input type="button" value="Cancel" onclick="OnCancelZoom()">
+                <input id="ok" type="button" value="Zoom">
+                <input id="cancel" type="button" value="Cancel">
             </div>
         </div>
         
         <script src="index.js" type="text/javascript"></script>
         <script type="text/javascript">
-            function safeParseInt(value, defaultValue) {
-                return value ? Number.parseInt(value, 10) : defaultValue;
-            }
-
-            function safeParseFloat(value, defaultValue) {
-                return value ? Number.parseFloat(value) : defaultValue;
-            }
-
-            function getParameters() {
-                const urlParams = new URLSearchParams(location.search.substr(1));
-
-                return {
-                    maxIterations: safeParseInt(urlParams.get('maxIter'), 50),
-                    position: {
-                        x: safeParseFloat(urlParams.get('x'), -0.5),
-                        y: safeParseFloat(urlParams.get('y'), 0)
-                    },
-                    scale: safeParseFloat(urlParams.get('scale'), 4)
-                };
-            }
-
-            let currentParams;
-
-            function onClickRender() {
-                currentParams = getParameters();
-                console.log('rendering with params: ', currentParams);
-                drawMandelbrot('.canvasContainer', currentParams);
-            }
-
-            const canvas = document.getElementById('canvas');
-
-            let isSelecting = false;
-            let startX, startY, endX, endY;
-
-            function updateSelection() {
-                const selectionElement = document.getElementById('selection');
-                selectionElement.style.display = 'block';
-
-                const w = Math.max(startX, endX) - Math.min(startX, endX);
-                const h = Math.max(startY, endY) - Math.min(startY, endY);
-
-                selectionElement.style.left = Math.min(startX, endX);
-                selectionElement.style.top = Math.min(startY, endY);
-                selectionElement.style.width = w;
-                selectionElement.style.height = h;
-            }
-
-            canvas.addEventListener('pointerdown', e => {
-                canvas.setPointerCapture(e.pointerId);
-
-                isSelecting = true;
-                startX = e.offsetX;
-                startY = e.offsetY;
-                endX = startX;
-                endY = startY;
-            });
-            canvas.addEventListener('pointermove', e => {
-                if (!isSelecting) {
-                    return;
-                }
-
-                endX = e.offsetX;
-
-                const w = endX - startX;
-                const h = w * (canvas.height / canvas.width);
-                endY = startY + h;
-
-                updateSelection()
-            });
-            canvas.addEventListener('pointerup', e => {
-                canvas.releasePointerCapture(e.pointerId);
-                isSelecting = false;
-
-                console.log({ startX, startY, endX, endY });
-            });
-
-            function hideSelection() {
-                const selectionElement = document.getElementById('selection');
-                selectionElement.style.display = 'none';
-            }
-
-            function OnZoom() {
-                const p = currentParams;
-
-                const xMin = Math.min(startX, endX) / canvas.width;
-                const xMax = Math.max(startX, endX) / canvas.width;
-                const yMin = Math.min(startY, endY) / canvas.height;
-                const yMax = Math.max(startY, endY) / canvas.height;
-
-                const xCenter = (xMin + (xMax - xMin) / 2) * 2 - 1;
-                const yCenter = (yMin + (yMax - yMin) / 2) * 2 - 1;
-
-                const aspect = canvas.height / canvas.width;
-                const xx = p.position.x + xCenter * p.scale * 0.5;
-                const yy = p.position.y + yCenter * p.scale * 0.5 * aspect;
-
-                const s = (xMax - xMin) * p.scale;
-                window.location.search = `?x=${xx}&y=${yy}&scale=${s}&maxIter=${p.maxIterations}`;
-            }
-
-            function OnCancelZoom() {
-                hideSelection();
-            }
-
-            onClickRender();
+            let parameters = getCurrentParameters();
+            initializeZoom(parameters, 'canvas', 'selection');
+            drawMandelbrot('.canvasContainer', parameters);
         </script>
     </body>
 </html>
