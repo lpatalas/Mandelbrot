@@ -140,6 +140,23 @@ var csquare = function (c) {
 var cabs = function (c) {
     return Math.sqrt(c.a * c.a + c.b * c.b);
 };
+function findElementById(id, elementType) {
+    var element = document.getElementById(id);
+    if (!element || !(element instanceof elementType)) {
+        throw new Error("Can't find element: " + id);
+    }
+    return element;
+}
+function findElementBySelector(selector, elementType) {
+    var element = document.querySelector(selector);
+    if (!element || !(element instanceof elementType)) {
+        throw new Error("Can't find element: " + selector);
+    }
+    return element;
+}
+function px(x) {
+    return x + "px";
+}
 ///<reference path="colorSchemes.ts" />
 var ViewState = /** @class */ (function () {
     function ViewState(colorScheme, maxIterations, position, scale) {
@@ -266,6 +283,7 @@ function drawMandelbrot(canvasElementId, viewState) {
 }
 ///<reference path="viewState.ts" />
 ///<reference path="bounds.ts" />
+///<reference path="domHelpers.ts" />
 function initializeZoom(viewState, canvasElementId, selectionElementId) {
     var currentSelection = null;
     hookCreateSelectionEvents();
@@ -365,11 +383,7 @@ function initializeZoom(viewState, canvasElementId, selectionElementId) {
             currentSelection = null;
         }
         function hookOnClick(elementId, onClick) {
-            var selector = "#" + selectionElementId + " #" + elementId;
-            var element = document.querySelector(selector);
-            if (!element || !(element instanceof HTMLElement)) {
-                throw new Error("Can't find element: " + selector);
-            }
+            var element = findElementById(elementId, HTMLElement);
             element.addEventListener('click', function (e) {
                 e.preventDefault();
                 onClick(e);
@@ -378,26 +392,13 @@ function initializeZoom(viewState, canvasElementId, selectionElementId) {
         }
     }
     function findCanvasElement() {
-        var canvas = document.getElementById(canvasElementId);
-        if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
-            throw new Error("Can't find canvas element: " + canvasElementId);
-        }
-        return canvas;
+        return findElementById(canvasElementId, HTMLCanvasElement);
     }
     function findSelectionElement() {
-        var selectionElement = document.getElementById(selectionElementId);
-        if (!selectionElement) {
-            throw new Error("Can't find selection element: " + selectionElementId);
-        }
-        return selectionElement;
+        return findElementById(selectionElementId, HTMLElement);
     }
     function findToolbarElement() {
-        var toolbarSelector = "#" + selectionElementId + " .selectionToolbar";
-        var toolbarElement = document.querySelector(toolbarSelector);
-        if (!toolbarElement || !(toolbarElement instanceof HTMLElement)) {
-            throw new Error("Can't get toolbar element: " + toolbarSelector);
-        }
-        return toolbarElement;
+        return findElementBySelector("#" + selectionElementId + " .selectionToolbar", HTMLElement);
     }
     function updateSelectionElement(selection) {
         var selectionElement = findSelectionElement();
@@ -405,10 +406,10 @@ function initializeZoom(viewState, canvasElementId, selectionElementId) {
         var topLeft = selection.topLeft;
         var w = selection.width;
         var h = selection.height;
-        selectionElement.style.left = topLeft.x + "px";
-        selectionElement.style.top = topLeft.y + "px";
-        selectionElement.style.width = w + "px";
-        selectionElement.style.height = h + "px";
+        selectionElement.style.left = px(topLeft.x);
+        selectionElement.style.top = px(topLeft.y);
+        selectionElement.style.width = px(w);
+        selectionElement.style.height = px(h);
     }
     function hideSelectionElement() {
         var selectionElement = findSelectionElement();

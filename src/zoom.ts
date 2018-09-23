@@ -1,5 +1,6 @@
 ///<reference path="viewState.ts" />
 ///<reference path="bounds.ts" />
+///<reference path="domHelpers.ts" />
 
 function initializeZoom(viewState: ViewState, canvasElementId: string, selectionElementId: string) {
     let currentSelection: Bounds | null = null;
@@ -134,12 +135,7 @@ function initializeZoom(viewState: ViewState, canvasElementId: string, selection
         }
 
         function hookOnClick(elementId: string, onClick: (e: MouseEvent) => void) {
-            const selector = `#${selectionElementId} #${elementId}`;
-            const element = document.querySelector(selector);
-            if (!element || !(element instanceof HTMLElement)) {
-                throw new Error(`Can't find element: ${selector}`)
-            }
-    
+            const element = findElementById(elementId, HTMLElement);
             element.addEventListener('click', e => {
                 e.preventDefault();
                 onClick(e);
@@ -149,29 +145,15 @@ function initializeZoom(viewState: ViewState, canvasElementId: string, selection
     }
 
     function findCanvasElement() {
-        const canvas = document.getElementById(canvasElementId);
-        if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
-            throw new Error(`Can't find canvas element: ${canvasElementId}`);
-        }
-        return canvas;
+        return findElementById(canvasElementId, HTMLCanvasElement);
     }
 
     function findSelectionElement() {
-        const selectionElement = document.getElementById(selectionElementId);
-        if (!selectionElement) {
-            throw new Error(`Can't find selection element: ${selectionElementId}`);
-        }
-
-        return selectionElement;
+        return findElementById(selectionElementId, HTMLElement);
     }
 
     function findToolbarElement() {
-        const toolbarSelector = `#${selectionElementId} .selectionToolbar`;
-        const toolbarElement = document.querySelector(toolbarSelector);
-        if (!toolbarElement || !(toolbarElement instanceof HTMLElement)) {
-            throw new Error(`Can't get toolbar element: ${toolbarSelector}`);
-        }
-        return toolbarElement;
+        return findElementBySelector(`#${selectionElementId} .selectionToolbar`, HTMLElement);
     }
 
     function updateSelectionElement(selection: Bounds) {
@@ -182,10 +164,10 @@ function initializeZoom(viewState: ViewState, canvasElementId: string, selection
         const w = selection.width;
         const h = selection.height;
 
-        selectionElement.style.left = `${topLeft.x}px`;
-        selectionElement.style.top = `${topLeft.y}px`;
-        selectionElement.style.width = `${w}px`;
-        selectionElement.style.height = `${h}px`;
+        selectionElement.style.left = px(topLeft.x);
+        selectionElement.style.top = px(topLeft.y);
+        selectionElement.style.width = px(w);
+        selectionElement.style.height = px(h);
     }
 
     function hideSelectionElement() {
