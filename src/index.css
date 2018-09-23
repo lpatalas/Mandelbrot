@@ -21,26 +21,13 @@ body {
     position: absolute;
 }
 #selection > a#ok {
-    align-items: center;
     cursor: zoom-in;
-    display: flex;
+    display: inline-block;
     height: 100%;
-    justify-content: center;
     left: 0;
     position: absolute;
     top: 0;
     width: 100%;
-}
-#selection > a#ok > i {
-    background-color: #fff;
-    border-radius: 16px;
-    display: none;
-    font-size: 60pt;
-    opacity: 0.8;
-    padding: 16px;
-}
-#selection > a#ok:hover > i {
-    display: inline-block;
 }
 .selectionToolbar {
     background-color: #800;
