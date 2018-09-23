@@ -141,23 +141,39 @@ var cabs = function (c) {
     return Math.sqrt(c.a * c.a + c.b * c.b);
 };
 ///<reference path="colorSchemes.ts" />
+var ViewState = /** @class */ (function () {
+    function ViewState(colorScheme, maxIterations, position, scale) {
+        this.colorScheme = colorScheme;
+        this.maxIterations = maxIterations;
+        this.position = position;
+        this.scale = scale;
+    }
+    ViewState.getCurrent = function () {
+        var urlParams = new URLSearchParams(location.search.substr(1));
+        return new ViewState(safeParseInt(urlParams.get('colorScheme'), 0) % colorSchemes.length, safeParseInt(urlParams.get('maxIter'), 50), {
+            x: safeParseFloat(urlParams.get('x'), -0.5),
+            y: safeParseFloat(urlParams.get('y'), 0)
+        }, safeParseFloat(urlParams.get('scale'), 4));
+    };
+    ViewState.prototype.toURLSearchParams = function () {
+        return new URLSearchParams({
+            x: this.position.x.toString(),
+            y: this.position.y.toString(),
+            scale: this.scale.toString(),
+            maxIter: this.maxIterations.toString(),
+            colorScheme: this.colorScheme.toString()
+        });
+    };
+    ViewState.prototype.withPosAndScale = function (position, scale) {
+        return new ViewState(this.colorScheme, this.maxIterations, position, scale);
+    };
+    return ViewState;
+}());
 function safeParseInt(value, defaultValue) {
     return value ? parseInt(value, 10) : defaultValue;
 }
 function safeParseFloat(value, defaultValue) {
     return value ? parseFloat(value) : defaultValue;
-}
-function getCurrentParameters() {
-    var urlParams = new URLSearchParams(location.search.substr(1));
-    return {
-        colorScheme: safeParseInt(urlParams.get('colorScheme'), 0) % colorSchemes.length,
-        maxIterations: safeParseInt(urlParams.get('maxIter'), 50),
-        position: {
-            x: safeParseFloat(urlParams.get('x'), -0.5),
-            y: safeParseFloat(urlParams.get('y'), 0)
-        },
-        scale: safeParseFloat(urlParams.get('scale'), 4)
-    };
 }
 var Stopwatch = /** @class */ (function () {
     function Stopwatch(label) {
@@ -170,12 +186,12 @@ var Stopwatch = /** @class */ (function () {
     return Stopwatch;
 }());
 ///<reference path="complex.ts" />
-///<reference path="parameters.ts" />
+///<reference path="viewState.ts" />
 ///<reference path="colorSchemes.ts" />
 ///<reference path="stopwatch.ts" />
-function drawMandelbrot(canvasElementId, parameters) {
+function drawMandelbrot(canvasElementId, viewState) {
     var context = createRenderingContext();
-    var iterations = computeMandelbrot(parameters, context.canvas);
+    var iterations = computeMandelbrot(viewState, context.canvas);
     renderMandelbrot(context, iterations);
     function createRenderingContext() {
         var canvas = document.getElementById(canvasElementId);
@@ -190,10 +206,10 @@ function drawMandelbrot(canvasElementId, parameters) {
         }
         return context;
     }
-    function computeMandelbrot(parameters, canvasSize) {
+    function computeMandelbrot(viewState, canvasSize) {
         var sw = new Stopwatch("computeMandelbrot");
         var width = canvasSize.width, height = canvasSize.height;
-        var position = parameters.position, scale = parameters.scale;
+        var position = viewState.position, scale = viewState.scale;
         var aspectRatio = height / width;
         var xMin = position.x - scale / 2;
         var xMax = position.x + scale / 2;
@@ -204,7 +220,7 @@ function drawMandelbrot(canvasElementId, parameters) {
             for (var x = 0; x < width; x++) {
                 var cx = lerp(xMin, xMax, x / width);
                 var cy = lerp(yMin, yMax, y / height);
-                var i = computePoint(cx, cy, parameters.maxIterations);
+                var i = computePoint(cx, cy, viewState.maxIterations);
                 values[x + y * width] = i;
             }
         }
@@ -226,11 +242,11 @@ function drawMandelbrot(canvasElementId, parameters) {
         var sw = new Stopwatch("renderMandelbrot");
         var _a = context.canvas, width = _a.width, height = _a.height;
         var imageData = context.getImageData(0, 0, width, height);
-        var colorInterpolator = colorSchemes[parameters.colorScheme];
+        var colorInterpolator = colorSchemes[viewState.colorScheme];
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
                 var iterCount = iterations[x + y * width];
-                var iterFactor = iterCount / parameters.maxIterations;
+                var iterFactor = iterCount / viewState.maxIterations;
                 var i = (x + y * width) * 4;
                 var color = colorInterpolator(iterFactor);
                 imageData.data[i] = color.r;
@@ -248,9 +264,9 @@ function drawMandelbrot(canvasElementId, parameters) {
                 : a + x * (b - a));
     }
 }
-///<reference path="parameters.ts" />
+///<reference path="viewState.ts" />
 ///<reference path="bounds.ts" />
-function initializeZoom(parameters, canvasElementId, selectionElementId) {
+function initializeZoom(viewState, canvasElementId, selectionElementId) {
     var currentSelection = null;
     hookCreateSelectionEvents();
     hookMoveSelectionEvents();
@@ -325,7 +341,7 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
             if (!currentSelection) {
                 return;
             }
-            var p = parameters;
+            hideSelectionElement();
             var canvas = findCanvasElement();
             var xMin = currentSelection.start.x / canvas.width;
             var xMax = currentSelection.end.x / canvas.width;
@@ -333,12 +349,16 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
             var yMax = currentSelection.end.y / canvas.height;
             var xCenter = (xMin + (xMax - xMin) / 2) * 2 - 1;
             var yCenter = (yMin + (yMax - yMin) / 2) * 2 - 1;
-            var aspect = canvas.height / canvas.width;
-            var xx = p.position.x + xCenter * p.scale * 0.5;
-            var yy = p.position.y + yCenter * p.scale * 0.5 * aspect;
-            var s = (xMax - xMin) * p.scale;
-            hideSelectionElement();
-            window.location.search = "?x=" + xx + "&y=" + yy + "&scale=" + s + "&maxIter=" + p.maxIterations + "&colorScheme=" + p.colorScheme;
+            var position = viewState.position, scale = viewState.scale;
+            var aspectRatio = canvas.height / canvas.width;
+            var newPosition = {
+                x: position.x + xCenter * scale * 0.5,
+                y: position.y + yCenter * scale * 0.5 * aspectRatio
+            };
+            var newScale = (xMax - xMin) * scale;
+            var zoomedViewState = viewState.withPosAndScale(newPosition, newScale);
+            var searchParams = zoomedViewState.toURLSearchParams();
+            window.location.search = searchParams.toString();
         }
         function onCancelZoom() {
             hideSelectionElement();

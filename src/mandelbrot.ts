@@ -1,5 +1,5 @@
 ///<reference path="complex.ts" />
-///<reference path="parameters.ts" />
+///<reference path="viewState.ts" />
 ///<reference path="colorSchemes.ts" />
 ///<reference path="stopwatch.ts" />
 
@@ -8,9 +8,9 @@ interface Size {
     height: number;
 }
 
-function drawMandelbrot(canvasElementId: string, parameters: Parameters) {
+function drawMandelbrot(canvasElementId: string, viewState: ViewState) {
     const context = createRenderingContext();
-    const iterations = computeMandelbrot(parameters, context.canvas);
+    const iterations = computeMandelbrot(viewState, context.canvas);
     renderMandelbrot(context, iterations);
 
     function createRenderingContext() {
@@ -30,11 +30,11 @@ function drawMandelbrot(canvasElementId: string, parameters: Parameters) {
         return context;
     }
 
-    function computeMandelbrot(parameters: Parameters, canvasSize: Size) {
+    function computeMandelbrot(viewState: ViewState, canvasSize: Size) {
         const sw = new Stopwatch("computeMandelbrot");
 
         const { width, height } = canvasSize;
-        const { position, scale } = parameters;
+        const { position, scale } = viewState;
         const aspectRatio = height / width;
 
         const xMin = position.x - scale / 2;
@@ -48,7 +48,7 @@ function drawMandelbrot(canvasElementId: string, parameters: Parameters) {
             for (let x = 0; x < width; x++) {
                 const cx = lerp(xMin, xMax, x / width);
                 const cy = lerp(yMin, yMax, y / height);
-                const i = computePoint(cx, cy, parameters.maxIterations);
+                const i = computePoint(cx, cy, viewState.maxIterations);
                 values[x + y * width] = i;
             }
         }
@@ -75,12 +75,12 @@ function drawMandelbrot(canvasElementId: string, parameters: Parameters) {
 
         const { width, height } = context.canvas;
         const imageData = context.getImageData(0, 0, width, height);
-        const colorInterpolator = colorSchemes[parameters.colorScheme];
+        const colorInterpolator = colorSchemes[viewState.colorScheme];
 
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 const iterCount = iterations[x + y * width];
-                const iterFactor = iterCount / parameters.maxIterations;
+                const iterFactor = iterCount / viewState.maxIterations;
                 const i = (x + y * width) * 4;
                 const color = colorInterpolator(iterFactor);
                 

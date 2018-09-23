@@ -1,7 +1,7 @@
-///<reference path="parameters.ts" />
+///<reference path="viewState.ts" />
 ///<reference path="bounds.ts" />
 
-function initializeZoom(parameters: Parameters, canvasElementId: string, selectionElementId: string) {
+function initializeZoom(viewState: ViewState, canvasElementId: string, selectionElementId: string) {
     let currentSelection: Bounds | null = null;
 
     hookCreateSelectionEvents();
@@ -103,26 +103,29 @@ function initializeZoom(parameters: Parameters, canvasElementId: string, selecti
                 return;
             }
             
-            const p = parameters;
-    
+            hideSelectionElement();
+            
             const canvas = findCanvasElement();
-    
+            
             const xMin = currentSelection.start.x / canvas.width;
             const xMax = currentSelection.end.x / canvas.width;
             const yMin = currentSelection.start.y / canvas.height;
             const yMax = currentSelection.end.y / canvas.height;
-    
+            
             const xCenter = (xMin + (xMax - xMin) / 2) * 2 - 1;
             const yCenter = (yMin + (yMax - yMin) / 2) * 2 - 1;
-    
-            const aspect = canvas.height / canvas.width;
-            const xx = p.position.x + xCenter * p.scale * 0.5;
-            const yy = p.position.y + yCenter * p.scale * 0.5 * aspect;
-    
-            const s = (xMax - xMin) * p.scale;
-    
-            hideSelectionElement();
-            window.location.search = `?x=${xx}&y=${yy}&scale=${s}&maxIter=${p.maxIterations}&colorScheme=${p.colorScheme}`;
+            
+            const { position, scale } = viewState;
+            const aspectRatio = canvas.height / canvas.width;
+            const newPosition = {
+                x: position.x + xCenter * scale * 0.5,
+                y: position.y + yCenter * scale * 0.5 * aspectRatio
+            };
+            const newScale = (xMax - xMin) * scale;
+            
+            const zoomedViewState = viewState.withPosAndScale(newPosition, newScale);
+            const searchParams = zoomedViewState.toURLSearchParams();
+            window.location.search = searchParams.toString();
         }
     
         function onCancelZoom() {
