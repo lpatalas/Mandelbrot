@@ -103,28 +103,59 @@ function getCurrentParameters() {
         scale: safeParseFloat(urlParams.get('scale'), 4)
     };
 }
+var Stopwatch = /** @class */ (function () {
+    function Stopwatch(label) {
+        this.label = label;
+        console.time(label);
+    }
+    Stopwatch.prototype.stop = function () {
+        console.timeEnd(this.label);
+    };
+    return Stopwatch;
+}());
 ///<reference path="complex.ts" />
 ///<reference path="parameters.ts" />
 ///<reference path="colorSchemes.ts" />
-var lerp = function (a, b, x) {
-    return x < 0 ? a
-        : x > 1 ? b
-            : a + (x * (b - a));
-};
+///<reference path="stopwatch.ts" />
 function drawMandelbrot(canvasElementId, parameters) {
-    var canvasElement = document.getElementById(canvasElementId);
-    if (!canvasElement) {
-        throw new Error("Can't find canvas using selector: " + canvasElementId);
+    var context = createRenderingContext();
+    var iterations = computeMandelbrot(parameters, context.canvas);
+    renderMandelbrot(context, iterations);
+    function createRenderingContext() {
+        var canvas = document.getElementById(canvasElementId);
+        if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
+            throw new Error("Can't find canvas using selector: " + canvasElementId);
+        }
+        canvas.width = document.body.clientWidth;
+        canvas.height = document.body.clientHeight;
+        var context = canvas.getContext('2d');
+        if (!context) {
+            throw new Error("Can't get canvas context");
+        }
+        return context;
     }
-    var canvas = canvasElement;
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
-    var context = canvas.getContext('2d');
-    if (!context) {
-        console.error("Can't get canvas context");
-        return;
+    function computeMandelbrot(parameters, canvasSize) {
+        var sw = new Stopwatch("computeMandelbrot");
+        var width = canvasSize.width, height = canvasSize.height;
+        var position = parameters.position, scale = parameters.scale;
+        var aspectRatio = height / width;
+        var xMin = position.x - scale / 2;
+        var xMax = position.x + scale / 2;
+        var yMin = position.y - scale / 2 * aspectRatio;
+        var yMax = position.y + scale / 2 * aspectRatio;
+        var values = new Array(width * height);
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                var cx = lerp(xMin, xMax, x / width);
+                var cy = lerp(yMin, yMax, y / height);
+                var i = computePoint(cx, cy, parameters.maxIterations);
+                values[x + y * width] = i;
+            }
+        }
+        sw.stop();
+        return values;
     }
-    var iterate = function (x, y, maxIterations) {
+    function computePoint(x, y, maxIterations) {
         var Zn = { a: 0, b: 0 };
         for (var iter = 0; iter < maxIterations; iter++) {
             Zn = cadd(csquare(Zn), { a: x, b: y });
@@ -133,39 +164,19 @@ function drawMandelbrot(canvasElementId, parameters) {
             }
         }
         return maxIterations;
-    };
-    function computeMandelbrot(parameters, screenW, screenH) {
-        console.time("CalculateMandelbrot");
-        var aspectRatio = screenH / screenW;
-        var cxmin = parameters.position.x - parameters.scale / 2;
-        var cxmax = parameters.position.x + parameters.scale / 2;
-        var cymin = parameters.position.y - parameters.scale / 2 * aspectRatio;
-        var cymax = parameters.position.y + parameters.scale / 2 * aspectRatio;
-        var values = new Array(screenW * screenH);
-        for (var y = 0; y < screenH; y++) {
-            for (var x = 0; x < screenW; x++) {
-                var cx = lerp(cxmin, cxmax, x / screenW);
-                var cy = lerp(cymin, cymax, y / screenH);
-                var i = iterate(cx, cy, parameters.maxIterations);
-                values[x + y * screenW] = i;
-            }
-        }
-        console.timeEnd("CalculateMandelbrot");
-        return values;
     }
-    function renderMandelbrot(context, values) {
-        console.time("RenderMandelbrot");
-        var screenW = context.canvas.width;
-        var screenH = context.canvas.height;
-        var imageData = context.getImageData(0, 0, screenW, screenH);
-        var colorScheme = colorSchemes[parameters.colorScheme];
-        for (var y = 0; y < screenH; y++) {
-            for (var x = 0; x < screenW; x++) {
-                var value = values[x + y * screenW];
-                var f = value / parameters.maxIterations;
-                var c = Math.floor(lerp(0, 255, f));
-                var i = (x + y * screenW) * 4;
-                var color = colorScheme(f);
+    ;
+    function renderMandelbrot(context, iterations) {
+        var sw = new Stopwatch("renderMandelbrot");
+        var _a = context.canvas, width = _a.width, height = _a.height;
+        var imageData = context.getImageData(0, 0, width, height);
+        var colorInterpolator = colorSchemes[parameters.colorScheme];
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                var iterCount = iterations[x + y * width];
+                var iterFactor = iterCount / parameters.maxIterations;
+                var i = (x + y * width) * 4;
+                var color = colorInterpolator(iterFactor);
                 imageData.data[i] = color.r;
                 imageData.data[i + 1] = color.g;
                 imageData.data[i + 2] = color.b;
@@ -173,10 +184,13 @@ function drawMandelbrot(canvasElementId, parameters) {
             }
         }
         context.putImageData(imageData, 0, 0);
-        console.timeEnd("RenderMandelbrot");
+        sw.stop();
     }
-    var values = computeMandelbrot(parameters, canvas.width, canvas.height);
-    renderMandelbrot(context, values);
+    function lerp(a, b, x) {
+        return (x < 0 ? a
+            : x > 1 ? b
+                : a + x * (b - a));
+    }
 }
 ///<reference path="parameters.ts" />
 var Bounds = /** @class */ (function () {

@@ -1,29 +1,63 @@
 ///<reference path="complex.ts" />
 ///<reference path="parameters.ts" />
 ///<reference path="colorSchemes.ts" />
+///<reference path="stopwatch.ts" />
 
-const lerp = (a: number, b: number, x: number): number =>
-    x < 0 ? a
-    : x > 1 ? b
-    : a + (x * (b - a));
+interface Size {
+    width: number;
+    height: number;
+}
 
 function drawMandelbrot(canvasElementId: string, parameters: Parameters) {
-    const canvasElement = document.getElementById(canvasElementId);
-    if (!canvasElement) {
-        throw new Error(`Can't find canvas using selector: ${canvasElementId}`);
+    const context = createRenderingContext();
+    const iterations = computeMandelbrot(parameters, context.canvas);
+    renderMandelbrot(context, iterations);
+
+    function createRenderingContext() {
+        const canvas = document.getElementById(canvasElementId);
+        if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
+            throw new Error(`Can't find canvas using selector: ${canvasElementId}`);
+        }
+    
+        canvas.width = document.body.clientWidth;
+        canvas.height = document.body.clientHeight;
+    
+        const context = canvas.getContext('2d');
+        if (!context) {
+            throw new Error("Can't get canvas context");
+        }
+
+        return context;
     }
 
-    const canvas = canvasElement as HTMLCanvasElement;
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+    function computeMandelbrot(parameters: Parameters, canvasSize: Size) {
+        const sw = new Stopwatch("computeMandelbrot");
 
-    const context = canvas.getContext('2d');
-    if (!context) {
-        console.error("Can't get canvas context");
-        return;
+        const { width, height } = canvasSize;
+        const { position, scale } = parameters;
+        const aspectRatio = height / width;
+
+        const xMin = position.x - scale / 2;
+        const xMax = position.x + scale / 2;
+        const yMin = position.y - scale / 2 * aspectRatio;
+        const yMax = position.y + scale / 2 * aspectRatio;
+    
+        const values = new Array(width * height);
+    
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const cx = lerp(xMin, xMax, x / width);
+                const cy = lerp(yMin, yMax, y / height);
+                const i = computePoint(cx, cy, parameters.maxIterations);
+                values[x + y * width] = i;
+            }
+        }
+    
+        sw.stop();
+        return values;
     }
 
-    const iterate = (x: number, y: number, maxIterations: number) => {
+    function computePoint(x: number, y: number, maxIterations: number) {
         let Zn = { a: 0, b: 0 };
 
         for (let iter = 0; iter < maxIterations; iter++) {
@@ -36,47 +70,20 @@ function drawMandelbrot(canvasElementId: string, parameters: Parameters) {
         return maxIterations;
     };
 
-    function computeMandelbrot(parameters: Parameters, screenW: number, screenH: number) {
-        console.time("CalculateMandelbrot");
+    function renderMandelbrot(context: CanvasRenderingContext2D, iterations: number[]) {
+        const sw = new Stopwatch("renderMandelbrot");
 
-        const aspectRatio = screenH / screenW;
-        const cxmin = parameters.position.x - parameters.scale / 2;
-        const cxmax = parameters.position.x + parameters.scale / 2;
-        const cymin = parameters.position.y - parameters.scale / 2 * aspectRatio;
-        const cymax = parameters.position.y + parameters.scale / 2 * aspectRatio;
-    
-        const values = new Array(screenW * screenH);
-    
-        for (let y = 0; y < screenH; y++) {
-            for (let x = 0; x < screenW; x++) {
-                const cx = lerp(cxmin, cxmax, x / screenW);
-                const cy = lerp(cymin, cymax, y / screenH);
-                const i = iterate(cx, cy, parameters.maxIterations);
-                values[x + y * screenW] = i;
-            }
-        }
-    
-        console.timeEnd("CalculateMandelbrot");
+        const { width, height } = context.canvas;
+        const imageData = context.getImageData(0, 0, width, height);
+        const colorInterpolator = colorSchemes[parameters.colorScheme];
 
-        return values;
-    }
-
-    function renderMandelbrot(context: CanvasRenderingContext2D, values: number[]) {
-        console.time("RenderMandelbrot");
-
-        const screenW = context.canvas.width;
-        const screenH = context.canvas.height;
-        const imageData = context.getImageData(0, 0, screenW, screenH);
-        const colorScheme = colorSchemes[parameters.colorScheme];
-
-        for (let y = 0; y < screenH; y++) {
-            for (let x = 0; x < screenW; x++) {
-                const value = values[x + y * screenW];
-                const f = value / parameters.maxIterations;
-                const c = Math.floor(lerp(0, 255, f));
-                const i = (x + y * screenW) * 4;
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const iterCount = iterations[x + y * width];
+                const iterFactor = iterCount / parameters.maxIterations;
+                const i = (x + y * width) * 4;
+                const color = colorInterpolator(iterFactor);
                 
-                const color = colorScheme(f);
                 imageData.data[i] = color.r;
                 imageData.data[i + 1] = color.g;
                 imageData.data[i + 2] = color.b;
@@ -86,9 +93,14 @@ function drawMandelbrot(canvasElementId: string, parameters: Parameters) {
 
         context.putImageData(imageData, 0, 0);
 
-        console.timeEnd("RenderMandelbrot");
+        sw.stop();
     }
 
-    const values = computeMandelbrot(parameters, canvas.width, canvas.height);
-    renderMandelbrot(context, values);
+    function lerp(a: number, b: number, x: number): number {
+        return (
+            x < 0 ? a
+            : x > 1 ? b
+            : a + x * (b - a)
+        );
+    }
 }
