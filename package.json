@@ -2,7 +2,7 @@
   "name": "mandelbrot",
   "version": "1.0.0",
   "main": "index.js",
-  "author": "Lukasz Patalas <lpatalas@gmail.com>",
+  "author": "Lukasz Patalas",
   "license": "MIT",
   "private": true,
   "devDependencies": {
