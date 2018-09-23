@@ -159,7 +159,7 @@ function initializeZoom(parameters: Parameters, canvasElementId: string, selecti
         const s = (xMax - xMin) * p.scale;
 
         hideSelection();
-        window.location.search = `?x=${xx}&y=${yy}&scale=${s}&maxIter=${p.maxIterations}`;
+        window.location.search = `?x=${xx}&y=${yy}&scale=${s}&maxIter=${p.maxIterations}&colorScheme=${p.colorScheme}`;
     }
 
     const onCancelZoom = () => {

@@ -1,4 +1,7 @@
+///<reference path="colorSchemes.ts" />
+
 type Parameters = {
+    colorScheme: number;
     maxIterations: number;
     position: { x: number; y: number; };
     scale: 4;
@@ -16,6 +19,7 @@ function getCurrentParameters() {
     const urlParams = new URLSearchParams(location.search.substr(1));
 
     return {
+        colorScheme: safeParseInt(urlParams.get('colorScheme'), 0) % colorSchemes.length,
         maxIterations: safeParseInt(urlParams.get('maxIter'), 50),
         position: {
             x: safeParseFloat(urlParams.get('x'), -0.5),

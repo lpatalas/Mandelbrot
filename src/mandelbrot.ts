@@ -1,5 +1,6 @@
 ///<reference path="complex.ts" />
 ///<reference path="parameters.ts" />
+///<reference path="colorSchemes.ts" />
 
 const lerp = (a: number, b: number, x: number): number =>
     x < 0 ? a
@@ -72,16 +73,19 @@ function drawMandelbrot(containerElementId: string, parameters: Parameters) {
         const screenW = context.canvas.width;
         const screenH = context.canvas.height;
         const imageData = context.getImageData(0, 0, screenW, screenH);
+        const colorScheme = colorSchemes[parameters.colorScheme];
 
         for (let y = 0; y < screenH; y++) {
             for (let x = 0; x < screenW; x++) {
                 const value = values[x + y * screenW];
-                const c = Math.floor(lerp(0, 255, value / parameters.maxIterations));
+                const f = value / parameters.maxIterations;
+                const c = Math.floor(lerp(0, 255, f));
                 const i = (x + y * screenW) * 4;
-
-                imageData.data[i] = c;
-                imageData.data[i + 1] = c;
-                imageData.data[i + 2] = c;
+                
+                const color = colorScheme(f);
+                imageData.data[i] = color.r;
+                imageData.data[i + 1] = color.g;
+                imageData.data[i + 2] = color.b;
                 imageData.data[i + 3] = 255;
             }
         }

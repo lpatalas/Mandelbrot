@@ -1,4 +1,74 @@
 "use strict";
+var colorSchemes = [
+    function (value) {
+        var c = Math.floor(value * 255);
+        return {
+            r: c,
+            g: c,
+            b: c
+        };
+    },
+    function (value) {
+        return {
+            r: Math.floor(value * 255),
+            g: Math.floor(value * 255),
+            b: 128 + Math.floor(value * 128)
+        };
+    },
+    function (value) {
+        return {
+            r: Math.floor(value * 255),
+            g: Math.floor(value * 255),
+            b: 64 + Math.floor(value * 192)
+        };
+    },
+    function (value) {
+        return {
+            r: Math.floor(Math.pow(value, 0.5) * 255),
+            g: Math.floor(Math.pow(value, 2) * 255),
+            b: 128 + Math.floor(value * 128)
+        };
+    },
+    function (value) {
+        if (value <= 0.5) {
+            return {
+                r: Math.floor(value * 2 * 255),
+                g: Math.floor(value * 2 * 255),
+                b: 0
+            };
+        }
+        else {
+            return {
+                r: 255,
+                g: 255,
+                b: Math.floor((value - 0.5) * 2 * 255)
+            };
+        }
+    },
+    function (value) {
+        if (value <= 0.25) {
+            return {
+                r: Math.floor(value * 4 * 255),
+                g: 0,
+                b: 0
+            };
+        }
+        else if (value <= 0.75) {
+            return {
+                r: 255,
+                g: Math.floor((value - 0.25) * 2 * 255),
+                b: 0
+            };
+        }
+        else {
+            return {
+                r: 255,
+                g: 255,
+                b: Math.floor((value - 0.75) * 4 * 255)
+            };
+        }
+    }
+];
 var cadd = function (c1, c2) {
     return {
         a: c1.a + c2.a,
@@ -14,6 +84,7 @@ var csquare = function (c) {
 var cabs = function (c) {
     return Math.sqrt(c.a * c.a + c.b * c.b);
 };
+///<reference path="colorSchemes.ts" />
 function safeParseInt(value, defaultValue) {
     return value ? parseInt(value, 10) : defaultValue;
 }
@@ -23,6 +94,7 @@ function safeParseFloat(value, defaultValue) {
 function getCurrentParameters() {
     var urlParams = new URLSearchParams(location.search.substr(1));
     return {
+        colorScheme: safeParseInt(urlParams.get('colorScheme'), 0) % colorSchemes.length,
         maxIterations: safeParseInt(urlParams.get('maxIter'), 50),
         position: {
             x: safeParseFloat(urlParams.get('x'), -0.5),
@@ -33,6 +105,7 @@ function getCurrentParameters() {
 }
 ///<reference path="complex.ts" />
 ///<reference path="parameters.ts" />
+///<reference path="colorSchemes.ts" />
 var lerp = function (a, b, x) {
     return x < 0 ? a
         : x > 1 ? b
@@ -90,14 +163,17 @@ function drawMandelbrot(containerElementId, parameters) {
         var screenW = context.canvas.width;
         var screenH = context.canvas.height;
         var imageData = context.getImageData(0, 0, screenW, screenH);
+        var colorScheme = colorSchemes[parameters.colorScheme];
         for (var y = 0; y < screenH; y++) {
             for (var x = 0; x < screenW; x++) {
                 var value = values[x + y * screenW];
-                var c = Math.floor(lerp(0, 255, value / parameters.maxIterations));
+                var f = value / parameters.maxIterations;
+                var c = Math.floor(lerp(0, 255, f));
                 var i = (x + y * screenW) * 4;
-                imageData.data[i] = c;
-                imageData.data[i + 1] = c;
-                imageData.data[i + 2] = c;
+                var color = colorScheme(f);
+                imageData.data[i] = color.r;
+                imageData.data[i + 1] = color.g;
+                imageData.data[i + 2] = color.b;
                 imageData.data[i + 3] = 255;
             }
         }
@@ -244,7 +320,7 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
         var yy = p.position.y + yCenter * p.scale * 0.5 * aspect;
         var s = (xMax - xMin) * p.scale;
         hideSelection();
-        window.location.search = "?x=" + xx + "&y=" + yy + "&scale=" + s + "&maxIter=" + p.maxIterations;
+        window.location.search = "?x=" + xx + "&y=" + yy + "&scale=" + s + "&maxIter=" + p.maxIterations + "&colorScheme=" + p.colorScheme;
     };
     var onCancelZoom = function () {
         hideSelection();
