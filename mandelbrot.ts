@@ -80,13 +80,39 @@ function drawMandelbrot(containerElementId: string, parameters: Parameters) {
     const cymin = parameters.position.y - parameters.scale / 2 * aspectRatio;
     const cymax = parameters.position.y + parameters.scale / 2 * aspectRatio;
 
-    for (let x = 0; x < screenW; x++) {
-        for (let y = 0; y < screenH; y++) {
+    console.time("CalculateMandelbrot");
+
+    const values = new Array(screenW * screenH);
+
+    for (let y = 0; y < screenH; y++) {
+        for (let x = 0; x < screenW; x++) {
             const cx = lerp(cxmin, cxmax, x / screenW);
             const cy = lerp(cymin, cymax, y / screenH);
             const i = iterate(cx, cy, parameters.maxIterations);
-            const c = lerp(0, 255, i / parameters.maxIterations);
-            setPixel(x, y, `rgb(${c}, ${c}, ${c})`);
+            values[x + y * screenW] = i;
         }
     }
+
+    console.timeEnd("CalculateMandelbrot");
+
+    console.time("RenderMandelbrot");
+
+    const imageData = context.getImageData(0, 0, screenW, screenH);
+
+    for (let y = 0; y < screenH; y++) {
+        for (let x = 0; x < screenW; x++) {
+            const value = values[x + y * screenW];
+            const c = Math.floor(lerp(0, 255, value / parameters.maxIterations));
+            const i = (x + y * screenW) * 4;
+
+            imageData.data[i] = c;
+            imageData.data[i + 1] = c;
+            imageData.data[i + 2] = c;
+            imageData.data[i + 3] = 255;
+        }
+    }
+
+    context.putImageData(imageData, 0, 0);
+
+    console.timeEnd("RenderMandelbrot");
 }
