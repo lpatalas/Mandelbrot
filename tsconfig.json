@@ -1,7 +1,7 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "outFile": "mandelbrot.js",
+        "outFile": "index.js",
         "strict": true
     }
 }
