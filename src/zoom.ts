@@ -152,6 +152,8 @@ function initializeZoom(parameters: Parameters, canvasElementId: string, selecti
         const yy = p.position.y + yCenter * p.scale * 0.5 * aspect;
 
         const s = (xMax - xMin) * p.scale;
+
+        hideSelection();
         window.location.search = `?x=${xx}&y=${yy}&scale=${s}&maxIter=${p.maxIterations}`;
     }
 

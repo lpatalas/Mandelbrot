@@ -239,6 +239,7 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
         var xx = p.position.x + xCenter * p.scale * 0.5;
         var yy = p.position.y + yCenter * p.scale * 0.5 * aspect;
         var s = (xMax - xMin) * p.scale;
+        hideSelection();
         window.location.search = "?x=" + xx + "&y=" + yy + "&scale=" + s + "&maxIter=" + p.maxIterations;
     };
     var onCancelZoom = function () {
