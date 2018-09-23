@@ -41,6 +41,13 @@ class Bounds {
         return new Bounds(this.start, this.end);
     }
 
+    moveBy(offset: Point): Bounds {
+        return new Bounds(
+            { x: this.start.x + offset.x, y: this.start.y + offset.y },
+            { x: this.end.x + offset.x, y: this.end.y + offset.y }
+        )
+    }
+
     withEnd(end: Point): Bounds {
         return new Bounds(this.start, end);
     }
@@ -120,6 +127,7 @@ function initializeZoom(parameters: Parameters, canvasElementId: string, selecti
     canvas.addEventListener('pointerup', e => {
         canvas.releasePointerCapture(e.pointerId);
         isSelecting = false;
+        currentSelection = currentSelection.asNormalized();
         console.log('Selection:', currentSelection);
     });
 
@@ -131,11 +139,10 @@ function initializeZoom(parameters: Parameters, canvasElementId: string, selecti
     const onZoom = () => {
         const p = parameters;
 
-        const selectedBounds = currentSelection.asNormalized();
-        const xMin = selectedBounds.start.x / canvas.width;
-        const xMax = selectedBounds.end.x / canvas.width;
-        const yMin = selectedBounds.start.y / canvas.height;
-        const yMax = selectedBounds.end.y / canvas.height;
+        const xMin = currentSelection.start.x / canvas.width;
+        const xMax = currentSelection.end.x / canvas.width;
+        const yMin = currentSelection.start.y / canvas.height;
+        const yMax = currentSelection.end.y / canvas.height;
 
         const xCenter = (xMin + (xMax - xMin) / 2) * 2 - 1;
         const yCenter = (yMin + (yMax - yMin) / 2) * 2 - 1;
@@ -176,8 +183,8 @@ function initializeZoom(parameters: Parameters, canvasElementId: string, selecti
     }
 
     let isMoving = false;
-    let moveOriginX = 0;
-    let moveOriginY = 0;
+    let moveOrigin: Point = { x: 0, y: 0 };
+    let originalSelection: Bounds = Bounds.empty;
 
     toolbarElement.addEventListener('pointerdown', e => {
         if (isMoving) {
@@ -185,8 +192,8 @@ function initializeZoom(parameters: Parameters, canvasElementId: string, selecti
         }
 
         isMoving = true;
-        moveOriginX = e.offsetX;
-        moveOriginY = e.offsetY;
+        moveOrigin = { x: e.screenX, y: e.screenY };
+        originalSelection = currentSelection;
         toolbarElement.setPointerCapture(e.pointerId);
     });
 
@@ -195,11 +202,17 @@ function initializeZoom(parameters: Parameters, canvasElementId: string, selecti
             return;
         }
 
-        const moveOffsetX = e.offsetX - moveOriginX;
-        const moveOffsetY = e.offsetY - moveOriginY;
+        const moveOffset = {
+            x: e.screenX - moveOrigin.x,
+            y: e.screenY - moveOrigin.y
+        };
+
+        currentSelection = originalSelection.moveBy(moveOffset);
+        updateSelection(currentSelection);
     })
 
     toolbarElement.addEventListener('pointerup', e => {
         isMoving = false;
+        toolbarElement.releasePointerCapture(e.pointerId);
     })
 }

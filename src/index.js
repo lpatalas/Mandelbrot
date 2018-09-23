@@ -156,6 +156,9 @@ var Bounds = /** @class */ (function () {
     Bounds.prototype.copy = function () {
         return new Bounds(this.start, this.end);
     };
+    Bounds.prototype.moveBy = function (offset) {
+        return new Bounds({ x: this.start.x + offset.x, y: this.start.y + offset.y }, { x: this.end.x + offset.x, y: this.end.y + offset.y });
+    };
     Bounds.prototype.withEnd = function (end) {
         return new Bounds(this.start, end);
     };
@@ -217,6 +220,7 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
     canvas.addEventListener('pointerup', function (e) {
         canvas.releasePointerCapture(e.pointerId);
         isSelecting = false;
+        currentSelection = currentSelection.asNormalized();
         console.log('Selection:', currentSelection);
     });
     var hideSelection = function () {
@@ -225,11 +229,10 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
     };
     var onZoom = function () {
         var p = parameters;
-        var selectedBounds = currentSelection.asNormalized();
-        var xMin = selectedBounds.start.x / canvas.width;
-        var xMax = selectedBounds.end.x / canvas.width;
-        var yMin = selectedBounds.start.y / canvas.height;
-        var yMax = selectedBounds.end.y / canvas.height;
+        var xMin = currentSelection.start.x / canvas.width;
+        var xMax = currentSelection.end.x / canvas.width;
+        var yMin = currentSelection.start.y / canvas.height;
+        var yMax = currentSelection.end.y / canvas.height;
         var xCenter = (xMin + (xMax - xMin) / 2) * 2 - 1;
         var yCenter = (yMin + (yMax - yMin) / 2) * 2 - 1;
         var aspect = canvas.height / canvas.width;
@@ -261,25 +264,30 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
         throw new Error("Can't get toolbar element: " + toolbarSelector);
     }
     var isMoving = false;
-    var moveOriginX = 0;
-    var moveOriginY = 0;
+    var moveOrigin = { x: 0, y: 0 };
+    var originalSelection = Bounds.empty;
     toolbarElement.addEventListener('pointerdown', function (e) {
         if (isMoving) {
             return;
         }
         isMoving = true;
-        moveOriginX = e.offsetX;
-        moveOriginY = e.offsetY;
+        moveOrigin = { x: e.screenX, y: e.screenY };
+        originalSelection = currentSelection;
         toolbarElement.setPointerCapture(e.pointerId);
     });
     toolbarElement.addEventListener('pointermove', function (e) {
         if (!isMoving) {
             return;
         }
-        var moveOffsetX = e.offsetX - moveOriginX;
-        var moveOffsetY = e.offsetY - moveOriginY;
+        var moveOffset = {
+            x: e.screenX - moveOrigin.x,
+            y: e.screenY - moveOrigin.y
+        };
+        currentSelection = originalSelection.moveBy(moveOffset);
+        updateSelection(currentSelection);
     });
     toolbarElement.addEventListener('pointerup', function (e) {
         isMoving = false;
+        toolbarElement.releasePointerCapture(e.pointerId);
     });
 }
