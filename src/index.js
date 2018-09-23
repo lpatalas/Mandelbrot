@@ -108,16 +108,70 @@ function drawMandelbrot(containerElementId, parameters) {
     renderMandelbrot(context, values);
 }
 ///<reference path="parameters.ts" />
+var Bounds = /** @class */ (function () {
+    function Bounds(start, end) {
+        this.start = start;
+        this.end = end;
+    }
+    Object.defineProperty(Bounds.prototype, "height", {
+        get: function () { return Math.abs(this.end.y - this.start.y); },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Bounds.prototype, "width", {
+        get: function () { return Math.abs(this.end.x - this.start.x); },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Bounds.prototype, "topLeft", {
+        get: function () {
+            return {
+                x: Math.min(this.start.x, this.end.x),
+                y: Math.min(this.start.y, this.end.y),
+            };
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Bounds.prototype, "bottomRight", {
+        get: function () {
+            return {
+                x: Math.max(this.start.x, this.end.x),
+                y: Math.max(this.start.y, this.end.y),
+            };
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Bounds, "empty", {
+        get: function () {
+            return new Bounds({ x: 0, y: 0 }, { x: 0, y: 0 });
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Bounds.prototype.asNormalized = function () {
+        return new Bounds(this.topLeft, this.bottomRight);
+    };
+    Bounds.prototype.copy = function () {
+        return new Bounds(this.start, this.end);
+    };
+    Bounds.prototype.withEnd = function (end) {
+        return new Bounds(this.start, end);
+    };
+    return Bounds;
+}());
 function initializeZoom(parameters, canvasElementId, selectionElementId) {
     var canvas = document.getElementById(canvasElementId);
     if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
         throw new Error("Can't find canvas element: " + canvasElementId);
     }
     var isSelecting = false;
-    var startX;
-    var startY;
-    var endX;
-    var endY;
+    // let startX: number;
+    // let startY: number;
+    // let endX: number;
+    // let endY: number;
+    var currentSelection = Bounds.empty;
     function findSelectionElement() {
         var selectionElement = document.getElementById(selectionElementId);
         if (!selectionElement) {
@@ -125,38 +179,45 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
         }
         return selectionElement;
     }
-    function updateSelection() {
+    function updateSelection(selection) {
         var selectionElement = findSelectionElement();
         selectionElement.style.display = 'block';
-        var w = Math.max(startX, endX) - Math.min(startX, endX);
-        var h = Math.max(startY, endY) - Math.min(startY, endY);
-        selectionElement.style.left = Math.min(startX, endX) + "px";
-        selectionElement.style.top = Math.min(startY, endY) + "px";
+        var topLeft = selection.topLeft;
+        var w = selection.width;
+        var h = selection.height;
+        // const w = Math.max(selection.start.x, endX) - Math.min(startX, endX);
+        // const h = Math.max(selection.start.x, endY) - Math.min(startY, endY);
+        selectionElement.style.left = topLeft.x + "px";
+        selectionElement.style.top = topLeft.y + "px";
         selectionElement.style.width = w + "px";
         selectionElement.style.height = h + "px";
     }
     canvas.addEventListener('pointerdown', function (e) {
         canvas.setPointerCapture(e.pointerId);
         isSelecting = true;
-        startX = e.offsetX;
-        startY = e.offsetY;
-        endX = startX;
-        endY = startY;
+        currentSelection = new Bounds({ x: e.offsetX, y: e.offsetY }, { x: e.offsetX, y: e.offsetY });
+        // startX = e.offsetX;
+        // startY = e.offsetY;
+        // endX = startX;
+        // endY = startY;
     });
     canvas.addEventListener('pointermove', function (e) {
         if (!isSelecting) {
             return;
         }
-        endX = e.offsetX;
-        var w = endX - startX;
+        var w = e.offsetX - currentSelection.start.x;
         var h = w * (canvas.height / canvas.width);
-        endY = startY + h;
-        updateSelection();
+        var endY = currentSelection.start.y + h;
+        currentSelection = currentSelection.withEnd({
+            x: e.offsetX,
+            y: endY
+        });
+        updateSelection(currentSelection);
     });
     canvas.addEventListener('pointerup', function (e) {
         canvas.releasePointerCapture(e.pointerId);
         isSelecting = false;
-        console.log({ startX: startX, startY: startY, endX: endX, endY: endY });
+        console.log('Selection:', currentSelection);
     });
     var hideSelection = function () {
         var selectionElement = findSelectionElement();
@@ -164,10 +225,11 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
     };
     var onZoom = function () {
         var p = parameters;
-        var xMin = Math.min(startX, endX) / canvas.width;
-        var xMax = Math.max(startX, endX) / canvas.width;
-        var yMin = Math.min(startY, endY) / canvas.height;
-        var yMax = Math.max(startY, endY) / canvas.height;
+        var selectedBounds = currentSelection.asNormalized();
+        var xMin = selectedBounds.start.x / canvas.width;
+        var xMax = selectedBounds.end.x / canvas.width;
+        var yMin = selectedBounds.start.y / canvas.height;
+        var yMax = selectedBounds.end.y / canvas.height;
         var xCenter = (xMin + (xMax - xMin) / 2) * 2 - 1;
         var yCenter = (yMin + (yMax - yMin) / 2) * 2 - 1;
         var aspect = canvas.height / canvas.width;
@@ -193,4 +255,31 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
     };
     hookOnClick('ok', onZoom);
     hookOnClick('cancel', onCancelZoom);
+    var toolbarSelector = "#" + selectionElementId + " .selectionToolbar";
+    var toolbarElement = document.querySelector(toolbarSelector);
+    if (!toolbarElement || !(toolbarElement instanceof HTMLElement)) {
+        throw new Error("Can't get toolbar element: " + toolbarSelector);
+    }
+    var isMoving = false;
+    var moveOriginX = 0;
+    var moveOriginY = 0;
+    toolbarElement.addEventListener('pointerdown', function (e) {
+        if (isMoving) {
+            return;
+        }
+        isMoving = true;
+        moveOriginX = e.offsetX;
+        moveOriginY = e.offsetY;
+        toolbarElement.setPointerCapture(e.pointerId);
+    });
+    toolbarElement.addEventListener('pointermove', function (e) {
+        if (!isMoving) {
+            return;
+        }
+        var moveOffsetX = e.offsetX - moveOriginX;
+        var moveOffsetY = e.offsetY - moveOriginY;
+    });
+    toolbarElement.addEventListener('pointerup', function (e) {
+        isMoving = false;
+    });
 }

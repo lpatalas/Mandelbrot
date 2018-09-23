@@ -1,6 +1,7 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
+        "target": "es5",
         "outFile": "src/index.js",
         "strict": true
     }

@@ -46,7 +46,7 @@ body {
 #selection > a#ok:hover > i {
     display: inline-block;
 }
-.selectionButtons {
+.selectionToolbar {
     background-color: #800;
     border-color: #f00;
     border-style: solid;
@@ -54,6 +54,7 @@ body {
     border-top-right-radius: 20px;
     border-width: 1px;
     bottom: 40px;
+    cursor: move;
     display: flex;
     flex-direction: row;
     height: 40px;
@@ -61,7 +62,7 @@ body {
     position: relative;
     width: 100%;
 }
-.selectionButtons > a {
+.selectionToolbar > a {
     align-items: center;
     color: white;
     cursor: pointer;
@@ -69,10 +70,10 @@ body {
     font-size: 20pt;
     width: 40px;
 }
-.selectionButtons > a:hover {
+.selectionToolbar > a:hover {
     color: #faa;
 }
-.selectionButtons > a > i {
+.selectionToolbar > a > i {
     flex: 1;
     text-align: center;
 }
