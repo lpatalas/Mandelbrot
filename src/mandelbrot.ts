@@ -58,11 +58,11 @@ function drawMandelbrot(canvasElementId: string, viewState: ViewState) {
     }
 
     function computePoint(x: number, y: number, maxIterations: number) {
-        let Zn = { a: 0, b: 0 };
+        const Zn = new Complex();
 
         for (let iter = 0; iter < maxIterations; iter++) {
-            Zn = cadd(csquare(Zn), { a: x, b: y });
-            if (cabs(Zn) >= 2) {
+            Zn.square().add(x, y);
+            if (Zn.sqabs() >= 4) {
                 return iter;
             }
         }

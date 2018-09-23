@@ -125,21 +125,28 @@ var colorSchemes = [
         }
     }
 ];
-var cadd = function (c1, c2) {
-    return {
-        a: c1.a + c2.a,
-        b: c1.b + c2.b
+var Complex = /** @class */ (function () {
+    function Complex() {
+        this.a = 0;
+        this.b = 0;
+    }
+    Complex.prototype.add = function (a, b) {
+        this.a += a;
+        this.b += b;
+        return this;
     };
-};
-var csquare = function (c) {
-    return {
-        a: c.a * c.a - c.b * c.b,
-        b: 2 * c.a * c.b
+    Complex.prototype.sqabs = function () {
+        return this.a * this.a + this.b * this.b;
     };
-};
-var cabs = function (c) {
-    return Math.sqrt(c.a * c.a + c.b * c.b);
-};
+    Complex.prototype.square = function () {
+        var a2 = this.a * this.a - this.b * this.b;
+        var b2 = 2 * this.a * this.b;
+        this.a = a2;
+        this.b = b2;
+        return this;
+    };
+    return Complex;
+}());
 function findElementById(id, elementType) {
     var element = document.getElementById(id);
     if (!element || !(element instanceof elementType)) {
@@ -245,10 +252,10 @@ function drawMandelbrot(canvasElementId, viewState) {
         return values;
     }
     function computePoint(x, y, maxIterations) {
-        var Zn = { a: 0, b: 0 };
+        var Zn = new Complex();
         for (var iter = 0; iter < maxIterations; iter++) {
-            Zn = cadd(csquare(Zn), { a: x, b: y });
-            if (cabs(Zn) >= 2) {
+            Zn.square().add(x, y);
+            if (Zn.sqabs() >= 4) {
                 return iter;
             }
         }

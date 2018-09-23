@@ -1,22 +1,24 @@
-interface Complex {
-    a: number;
-    b: number;
-}
+class Complex {
+    a: number = 0;
+    b: number = 0;
 
-const cadd = (c1: Complex, c2: Complex): Complex => {
-    return {
-        a: c1.a + c2.a,
-        b: c1.b + c2.b
-    };
-};
+    add(a: number, b: number): this {
+        this.a += a;
+        this.b += b;
+        return this;
+    }
 
-const csquare = (c: Complex): Complex => {
-    return {
-        a: c.a * c.a - c.b * c.b,
-        b: 2 * c.a * c.b
-    };
-};
+    sqabs(): number {
+        return this.a * this.a + this.b * this.b;
+    }
 
-const cabs = (c: Complex): number => {
-    return Math.sqrt(c.a * c.a + c.b * c.b);
+    square(): this {
+        const a2 = this.a * this.a - this.b * this.b;
+        const b2 = 2 * this.a * this.b;
+    
+        this.a = a2;
+        this.b = b2;
+
+        return this;
+    }
 }
