@@ -7,21 +7,15 @@ const lerp = (a: number, b: number, x: number): number =>
     : x > 1 ? b
     : a + (x * (b - a));
 
-function drawMandelbrot(containerElementId: string, parameters: Parameters) {
-    const container = document.querySelector(containerElementId);
-    if (!container) {
-        throw new Error(`Can't find container element '${containerElementId}'`);
-    }
-
-    const canvasSelector = `${containerElementId} > canvas`;
-    const canvasElement = document.querySelector(canvasSelector);
+function drawMandelbrot(canvasElementId: string, parameters: Parameters) {
+    const canvasElement = document.getElementById(canvasElementId);
     if (!canvasElement) {
-        throw new Error(`Can't find canvas using selector: ${canvasSelector}`);
+        throw new Error(`Can't find canvas using selector: ${canvasElementId}`);
     }
 
     const canvas = canvasElement as HTMLCanvasElement;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+    canvas.width = document.body.clientWidth;
+    canvas.height = document.body.clientHeight;
 
     const context = canvas.getContext('2d');
     if (!context) {

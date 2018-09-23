@@ -111,19 +111,14 @@ var lerp = function (a, b, x) {
         : x > 1 ? b
             : a + (x * (b - a));
 };
-function drawMandelbrot(containerElementId, parameters) {
-    var container = document.querySelector(containerElementId);
-    if (!container) {
-        throw new Error("Can't find container element '" + containerElementId + "'");
-    }
-    var canvasSelector = containerElementId + " > canvas";
-    var canvasElement = document.querySelector(canvasSelector);
+function drawMandelbrot(canvasElementId, parameters) {
+    var canvasElement = document.getElementById(canvasElementId);
     if (!canvasElement) {
-        throw new Error("Can't find canvas using selector: " + canvasSelector);
+        throw new Error("Can't find canvas using selector: " + canvasElementId);
     }
     var canvas = canvasElement;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+    canvas.width = document.body.clientWidth;
+    canvas.height = document.body.clientHeight;
     var context = canvas.getContext('2d');
     if (!context) {
         console.error("Can't get canvas context");
