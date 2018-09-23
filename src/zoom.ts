@@ -93,6 +93,11 @@ function initializeZoom(parameters: Parameters, canvasElementId: string, selecti
     }
 
     canvas.addEventListener('pointerdown', e => {
+        if (e.pointerType === 'mouse' && e.button !== 0) {
+            return;
+        }
+
+        console.log('pointerdown', e);
         canvas.setPointerCapture(e.pointerId);
 
         isSelecting = true;
@@ -189,7 +194,7 @@ function initializeZoom(parameters: Parameters, canvasElementId: string, selecti
     let originalSelection: Bounds = Bounds.empty;
 
     toolbarElement.addEventListener('pointerdown', e => {
-        if (isMoving) {
+        if (e.pointerType === 'mouse' && e.button !== 0) {
             return;
         }
 

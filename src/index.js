@@ -196,6 +196,10 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
         selectionElement.style.height = h + "px";
     }
     canvas.addEventListener('pointerdown', function (e) {
+        if (e.pointerType === 'mouse' && e.button !== 0) {
+            return;
+        }
+        console.log('pointerdown', e);
         canvas.setPointerCapture(e.pointerId);
         isSelecting = true;
         currentSelection = new Bounds({ x: e.offsetX, y: e.offsetY }, { x: e.offsetX, y: e.offsetY });
@@ -268,7 +272,7 @@ function initializeZoom(parameters, canvasElementId, selectionElementId) {
     var moveOrigin = { x: 0, y: 0 };
     var originalSelection = Bounds.empty;
     toolbarElement.addEventListener('pointerdown', function (e) {
-        if (isMoving) {
+        if (e.pointerType === 'mouse' && e.button !== 0) {
             return;
         }
         isMoving = true;
