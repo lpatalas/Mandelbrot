@@ -6,7 +6,7 @@ interface Rgb {
 }
 
 const colorSchemes: Array<(value: number) => Rgb> = [
-    function(value: number) {
+    function (value: number) {
         const c = Math.floor(value * 255);
         return {
             r: c,
@@ -14,28 +14,28 @@ const colorSchemes: Array<(value: number) => Rgb> = [
             b: c
         };
     },
-    function(value: number) {
+    function (value: number) {
         return {
             r: Math.floor(value * 255),
             g: Math.floor(value * 255),
             b: 128 + Math.floor(value * 128)
         };
     },
-    function(value: number) {
+    function (value: number) {
         return {
             r: Math.floor(value * 255),
             g: Math.floor(value * 255),
             b: 64 + Math.floor(value * 192)
         };
     },
-    function(value: number) {
+    function (value: number) {
         return {
             r: Math.floor(Math.pow(value, 0.5) * 255),
             g: Math.floor(Math.pow(value, 2) * 255),
             b: 128 + Math.floor(value * 128)
         };
     },
-    function(value: number) {
+    function (value: number) {
         if (value <= 0.5) {
             return {
                 r: Math.floor(value * 2 * 255),
@@ -51,7 +51,7 @@ const colorSchemes: Array<(value: number) => Rgb> = [
             };
         }
     },
-    function(value: number) {
+    function (value: number) {
         if (value <= 0.25) {
             return {
                 r: Math.floor(value * 4 * 255),
@@ -74,7 +74,7 @@ const colorSchemes: Array<(value: number) => Rgb> = [
             };
         }
     },
-    function(value: number) {
+    function (value: number) {
         if (value <= 0.25) {
             return {
                 r: 0,

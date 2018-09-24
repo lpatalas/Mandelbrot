@@ -11,7 +11,7 @@ class ViewState {
 
     static getCurrent(): ViewState {
         const urlParams = new URLSearchParams(location.search.substr(1));
-    
+
         return new ViewState(
             safeParseInt(urlParams.get('colorScheme'), 0) % colorSchemes.length,
             safeParseInt(urlParams.get('maxIter'), 50),
@@ -51,7 +51,7 @@ class ViewState {
             position,
             scale
         );
-    }    
+    }
 }
 
 function safeParseInt(value: string | null, defaultValue: number) {

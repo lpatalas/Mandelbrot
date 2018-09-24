@@ -18,10 +18,10 @@ function drawMandelbrot(canvasElementId: string, viewState: ViewState) {
         if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
             throw new Error(`Can't find canvas using selector: ${canvasElementId}`);
         }
-    
+
         canvas.width = document.body.clientWidth;
         canvas.height = document.body.clientHeight;
-    
+
         const context = canvas.getContext('2d');
         if (!context) {
             throw new Error("Can't get canvas context");
@@ -41,9 +41,9 @@ function drawMandelbrot(canvasElementId: string, viewState: ViewState) {
         const xMax = position.x + scale / 2;
         const yMin = position.y - scale / 2 * aspectRatio;
         const yMax = position.y + scale / 2 * aspectRatio;
-    
+
         const values = new Array(width * height);
-    
+
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 const cx = lerp(xMin, xMax, x / width);
@@ -52,7 +52,7 @@ function drawMandelbrot(canvasElementId: string, viewState: ViewState) {
                 values[x + y * width] = i;
             }
         }
-    
+
         sw.stop();
         return values;
     }
@@ -66,7 +66,7 @@ function drawMandelbrot(canvasElementId: string, viewState: ViewState) {
                 return iter;
             }
         }
-        
+
         return maxIterations;
     };
 
@@ -83,7 +83,7 @@ function drawMandelbrot(canvasElementId: string, viewState: ViewState) {
                 const iterFactor = iterCount / viewState.maxIterations;
                 const i = (x + y * width) * 4;
                 const color = colorInterpolator(iterFactor);
-                
+
                 imageData.data[i] = color.r;
                 imageData.data[i + 1] = color.g;
                 imageData.data[i + 2] = color.b;

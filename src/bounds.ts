@@ -30,7 +30,7 @@ class Bounds {
         };
     }
 
-    static get empty() { 
+    static get empty() {
         return new Bounds({ x: 0, y: 0 }, { x: 0, y: 0 });
     }
 

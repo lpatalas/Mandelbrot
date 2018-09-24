@@ -7,7 +7,7 @@ class MandelbrotSeries {
     next(a: number, b: number) {
         const a2 = this.aSquared - this.bSquared;
         const b2 = 2 * this.a * this.b;
-    
+
         this.a = a2 + a;
         this.b = b2 + b;
         this.aSquared = this.a * this.a;

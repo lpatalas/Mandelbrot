@@ -11,7 +11,7 @@ function initializeZoom(viewState: ViewState, canvasElementId: string, selection
 
     function hookCreateSelectionEvents() {
         const canvas = findCanvasElement();
-        
+
         let isSelecting = false;
 
         canvas.addEventListener('pointerdown', e => {
@@ -20,34 +20,34 @@ function initializeZoom(viewState: ViewState, canvasElementId: string, selection
             }
 
             canvas.setPointerCapture(e.pointerId);
-    
+
             isSelecting = true;
             currentSelection = new Bounds(
                 { x: e.offsetX, y: e.offsetY },
                 { x: e.offsetX, y: e.offsetY }
             );
         });
-    
+
         canvas.addEventListener('pointermove', e => {
             if (!isSelecting || !currentSelection) {
                 return;
             }
-    
+
             currentSelection = currentSelection.withEnd({
                 x: e.offsetX,
                 y: e.offsetY
             });
-    
+
             updateSelectionElement(currentSelection);
         });
-    
+
         canvas.addEventListener('pointerup', e => {
             canvas.releasePointerCapture(e.pointerId);
-            
+
             if (isSelecting && currentSelection) {
                 currentSelection = currentSelection.asNormalized();
             }
-            
+
             isSelecting = false;
         });
     }
@@ -58,32 +58,32 @@ function initializeZoom(viewState: ViewState, canvasElementId: string, selection
         let isMoving = false;
         let moveOrigin: Point = { x: 0, y: 0 };
         let originalSelection: Bounds | null = null;
-    
+
         toolbarElement.addEventListener('pointerdown', e => {
             if (e.pointerType === 'mouse' && e.button !== 0) {
                 return;
             }
-    
+
             isMoving = true;
             moveOrigin = { x: e.screenX, y: e.screenY };
             originalSelection = currentSelection;
             toolbarElement.setPointerCapture(e.pointerId);
         });
-    
+
         toolbarElement.addEventListener('pointermove', e => {
             if (!isMoving || !originalSelection) {
                 return;
             }
-    
+
             const moveOffset = {
                 x: e.screenX - moveOrigin.x,
                 y: e.screenY - moveOrigin.y
             };
-    
+
             currentSelection = originalSelection.moveBy(moveOffset);
             updateSelectionElement(currentSelection);
         });
-    
+
         toolbarElement.addEventListener('pointerup', e => {
             toolbarElement.releasePointerCapture(e.pointerId);
             isMoving = false;
@@ -99,9 +99,9 @@ function initializeZoom(viewState: ViewState, canvasElementId: string, selection
             if (!currentSelection) {
                 return;
             }
-            
+
             hideSelectionElement();
-            
+
             const canvas = findCanvasElement();
             const worldBounds = new Bounds(
                 viewState.canvasToWorld(currentSelection.topLeft, canvas),
@@ -115,12 +115,12 @@ function initializeZoom(viewState: ViewState, canvasElementId: string, selection
                     ? worldBounds.height / aspectRatio
                     : worldBounds.width
             );
-            
+
             const zoomedViewState = viewState.withPosAndScale(newPosition, newScale);
             const searchParams = zoomedViewState.toURLSearchParams();
             window.location.search = searchParams.toString();
         }
-    
+
         function onCancelZoom() {
             hideSelectionElement();
             currentSelection = null;

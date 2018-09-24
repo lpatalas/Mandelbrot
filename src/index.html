@@ -1,26 +1,29 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Mandelbrot</title>
-        <meta charset="utf-8">
-        <link href="index.css" rel="stylesheet" type="text/css">
-    </head>
-    <body>
-        <canvas id="canvas"></canvas>
-        <div id="selection">
-            <div class="selectionToolbar">
-                <a id="cancel">
-                    <span>&times;</span>
-                </a>
-            </div>
-            <a id="ok"></a>
+
+<head>
+    <title>Mandelbrot</title>
+    <meta charset="utf-8">
+    <link href="index.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="selection">
+        <div class="selectionToolbar">
+            <a id="cancel">
+                <span>&times;</span>
+            </a>
         </div>
-        
-        <script src="index.js" type="text/javascript"></script>
-        <script type="text/javascript">
-            const viewState = ViewState.getCurrent();
-            initializeZoom(viewState, 'canvas', 'selection');
-            drawMandelbrot('canvas', viewState);
-        </script>
-    </body>
+        <a id="ok"></a>
+    </div>
+
+    <script src="index.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        const viewState = ViewState.getCurrent();
+        initializeZoom(viewState, 'canvas', 'selection');
+        drawMandelbrot('canvas', viewState);
+    </script>
+</body>
+
 </html>
