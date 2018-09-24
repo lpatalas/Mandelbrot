@@ -1,8 +1,8 @@
 class MandelbrotSeries {
-    private a: number = 0;
-    private b: number = 0;
-    private aSquared: number = 0;
-    private bSquared: number = 0;
+    private a: number = Number.EPSILON;
+    private b: number = Number.EPSILON;
+    private aSquared: number = Number.EPSILON;
+    private bSquared: number = Number.EPSILON;
 
     next(a: number, b: number) {
         const a2 = this.aSquared - this.bSquared;
