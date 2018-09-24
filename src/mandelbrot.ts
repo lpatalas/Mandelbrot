@@ -1,4 +1,4 @@
-///<reference path="complex.ts" />
+///<reference path="mandelbrotSeries.ts" />
 ///<reference path="viewState.ts" />
 ///<reference path="colorSchemes.ts" />
 ///<reference path="stopwatch.ts" />
@@ -58,10 +58,10 @@ function drawMandelbrot(canvasElementId: string, viewState: ViewState) {
     }
 
     function computePoint(x: number, y: number, maxIterations: number) {
-        const Zn = new Complex();
+        const Zn = new MandelbrotSeries();
 
         for (let iter = 0; iter < maxIterations; iter++) {
-            Zn.square().add(x, y);
+            Zn.next(x, y);
             if (Zn.sqabs() >= 4) {
                 return iter;
             }

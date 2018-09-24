@@ -162,28 +162,6 @@ var colorSchemes = [
         }
     },
 ];
-var Complex = /** @class */ (function () {
-    function Complex() {
-        this.a = 0;
-        this.b = 0;
-    }
-    Complex.prototype.add = function (a, b) {
-        this.a += a;
-        this.b += b;
-        return this;
-    };
-    Complex.prototype.sqabs = function () {
-        return this.a * this.a + this.b * this.b;
-    };
-    Complex.prototype.square = function () {
-        var a2 = this.a * this.a - this.b * this.b;
-        var b2 = 2 * this.a * this.b;
-        this.a = a2;
-        this.b = b2;
-        return this;
-    };
-    return Complex;
-}());
 function findElementById(id, elementType) {
     var element = document.getElementById(id);
     if (!element || !(element instanceof elementType)) {
@@ -201,6 +179,26 @@ function findElementBySelector(selector, elementType) {
 function px(x) {
     return x + "px";
 }
+var MandelbrotSeries = /** @class */ (function () {
+    function MandelbrotSeries() {
+        this.a = 0;
+        this.b = 0;
+        this.aSquared = 0;
+        this.bSquared = 0;
+    }
+    MandelbrotSeries.prototype.next = function (a, b) {
+        var a2 = this.aSquared - this.bSquared;
+        var b2 = 2 * this.a * this.b;
+        this.a = a2 + a;
+        this.b = b2 + b;
+        this.aSquared = this.a * this.a;
+        this.bSquared = this.b * this.b;
+    };
+    MandelbrotSeries.prototype.sqabs = function () {
+        return this.aSquared * this.bSquared;
+    };
+    return MandelbrotSeries;
+}());
 ///<reference path="colorSchemes.ts" />
 var ViewState = /** @class */ (function () {
     function ViewState(colorScheme, maxIterations, position, scale) {
@@ -255,7 +253,7 @@ var Stopwatch = /** @class */ (function () {
     };
     return Stopwatch;
 }());
-///<reference path="complex.ts" />
+///<reference path="mandelbrotSeries.ts" />
 ///<reference path="viewState.ts" />
 ///<reference path="colorSchemes.ts" />
 ///<reference path="stopwatch.ts" />
@@ -298,9 +296,9 @@ function drawMandelbrot(canvasElementId, viewState) {
         return values;
     }
     function computePoint(x, y, maxIterations) {
-        var Zn = new Complex();
+        var Zn = new MandelbrotSeries();
         for (var iter = 0; iter < maxIterations; iter++) {
-            Zn.square().add(x, y);
+            Zn.next(x, y);
             if (Zn.sqabs() >= 4) {
                 return iter;
             }
