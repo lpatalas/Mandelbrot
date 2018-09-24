@@ -57,11 +57,11 @@ body {
     width: 100%;
 }
 .selectionToolbar {
-    background-color: #800;
-    border-color: #f00;
+    background-color: #000;
+    border-color: #fff;
     border-style: solid;
     border-width: 1px;
-    bottom: 40px;
+    bottom: 39px;
     cursor: move;
     display: flex;
     flex-direction: row;
@@ -75,13 +75,14 @@ body {
     color: white;
     cursor: pointer;
     display: flex;
-    font-size: 20pt;
+    justify-content: center;
+    text-align: center;
     width: 40px;
 }
 .selectionToolbar > a:hover {
     color: #faa;
 }
-.selectionToolbar > a > i {
-    flex: 1;
-    text-align: center;
+.selectionToolbar > a > span {
+    font-size: 26pt;
+    font-weight: bold;
 }
