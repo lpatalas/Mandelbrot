@@ -83,6 +83,7 @@ body {
     color: #faa;
 }
 .selectionToolbar > a > span {
+    font-family: 'Times New Roman', Times, serif;
     font-size: 26pt;
     font-weight: bold;
 }
