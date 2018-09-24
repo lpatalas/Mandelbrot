@@ -17,7 +17,11 @@ body {
 
 #canvas {
     height: 100%;
+    position: absolute;
     user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
     width: 100%;
 }
 
