@@ -7,6 +7,15 @@ class Bounds {
     get height() { return Math.abs(this.end.y - this.start.y); }
     get width() { return Math.abs(this.end.x - this.start.x); }
 
+    get center() {
+        const topLeft = this.topLeft;
+        const bottomRight = this.bottomRight;
+        return {
+            x: (bottomRight.x + topLeft.x) / 2,
+            y: (bottomRight.y + topLeft.y) / 2
+        }
+    }
+
     get topLeft() {
         return {
             x: Math.min(this.start.x, this.end.x),

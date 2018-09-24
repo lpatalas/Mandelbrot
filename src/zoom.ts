@@ -33,13 +33,9 @@ function initializeZoom(viewState: ViewState, canvasElementId: string, selection
                 return;
             }
     
-            const canvasAspectRatio = canvas.height / canvas.width;
-            const newSelectionWidth = e.offsetX - currentSelection.start.x;
-            const newSelectionHeight = newSelectionWidth * canvasAspectRatio;
-    
             currentSelection = currentSelection.withEnd({
                 x: e.offsetX,
-                y: currentSelection.start.y + newSelectionHeight
+                y: e.offsetY
             });
     
             updateSelectionElement(currentSelection);
@@ -107,22 +103,18 @@ function initializeZoom(viewState: ViewState, canvasElementId: string, selection
             hideSelectionElement();
             
             const canvas = findCanvasElement();
-            
-            const xMin = currentSelection.start.x / canvas.width;
-            const xMax = currentSelection.end.x / canvas.width;
-            const yMin = currentSelection.start.y / canvas.height;
-            const yMax = currentSelection.end.y / canvas.height;
-            
-            const xCenter = (xMin + (xMax - xMin) / 2) * 2 - 1;
-            const yCenter = (yMin + (yMax - yMin) / 2) * 2 - 1;
-            
-            const { position, scale } = viewState;
+            const worldBounds = new Bounds(
+                viewState.canvasToWorld(currentSelection.topLeft, canvas),
+                viewState.canvasToWorld(currentSelection.bottomRight, canvas)
+            );
+
             const aspectRatio = canvas.height / canvas.width;
-            const newPosition = {
-                x: position.x + xCenter * scale * 0.5,
-                y: position.y + yCenter * scale * 0.5 * aspectRatio
-            };
-            const newScale = (xMax - xMin) * scale;
+            const newPosition = worldBounds.center;
+            const newScale = (
+                worldBounds.height > worldBounds.width
+                    ? worldBounds.height / aspectRatio
+                    : worldBounds.width
+            );
             
             const zoomedViewState = viewState.withPosAndScale(newPosition, newScale);
             const searchParams = zoomedViewState.toURLSearchParams();

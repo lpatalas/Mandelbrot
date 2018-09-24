@@ -14,6 +14,18 @@ var Bounds = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(Bounds.prototype, "center", {
+        get: function () {
+            var topLeft = this.topLeft;
+            var bottomRight = this.bottomRight;
+            return {
+                x: (bottomRight.x + topLeft.x) / 2,
+                y: (bottomRight.y + topLeft.y) / 2
+            };
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(Bounds.prototype, "topLeft", {
         get: function () {
             return {
@@ -179,6 +191,15 @@ var ViewState = /** @class */ (function () {
             y: safeParseFloat(urlParams.get('y'), 0)
         }, safeParseFloat(urlParams.get('scale'), 4));
     };
+    ViewState.prototype.canvasToWorld = function (canvasPos, canvasSize) {
+        var aspectRatio = canvasSize.height / canvasSize.width;
+        var x = (canvasPos.x / canvasSize.width - 0.5) * this.scale;
+        var y = (canvasPos.y / canvasSize.height - 0.5) * this.scale * aspectRatio;
+        return {
+            x: x + this.position.x,
+            y: y + this.position.y
+        };
+    };
     ViewState.prototype.toURLSearchParams = function () {
         return new URLSearchParams({
             x: this.position.x.toString(),
@@ -311,12 +332,9 @@ function initializeZoom(viewState, canvasElementId, selectionElementId) {
             if (!isSelecting || !currentSelection) {
                 return;
             }
-            var canvasAspectRatio = canvas.height / canvas.width;
-            var newSelectionWidth = e.offsetX - currentSelection.start.x;
-            var newSelectionHeight = newSelectionWidth * canvasAspectRatio;
             currentSelection = currentSelection.withEnd({
                 x: e.offsetX,
-                y: currentSelection.start.y + newSelectionHeight
+                y: e.offsetY
             });
             updateSelectionElement(currentSelection);
         });
@@ -368,19 +386,12 @@ function initializeZoom(viewState, canvasElementId, selectionElementId) {
             }
             hideSelectionElement();
             var canvas = findCanvasElement();
-            var xMin = currentSelection.start.x / canvas.width;
-            var xMax = currentSelection.end.x / canvas.width;
-            var yMin = currentSelection.start.y / canvas.height;
-            var yMax = currentSelection.end.y / canvas.height;
-            var xCenter = (xMin + (xMax - xMin) / 2) * 2 - 1;
-            var yCenter = (yMin + (yMax - yMin) / 2) * 2 - 1;
-            var position = viewState.position, scale = viewState.scale;
+            var worldBounds = new Bounds(viewState.canvasToWorld(currentSelection.topLeft, canvas), viewState.canvasToWorld(currentSelection.bottomRight, canvas));
             var aspectRatio = canvas.height / canvas.width;
-            var newPosition = {
-                x: position.x + xCenter * scale * 0.5,
-                y: position.y + yCenter * scale * 0.5 * aspectRatio
-            };
-            var newScale = (xMax - xMin) * scale;
+            var newPosition = worldBounds.center;
+            var newScale = (worldBounds.height > worldBounds.width
+                ? worldBounds.height / aspectRatio
+                : worldBounds.width);
             var zoomedViewState = viewState.withPosAndScale(newPosition, newScale);
             var searchParams = zoomedViewState.toURLSearchParams();
             window.location.search = searchParams.toString();

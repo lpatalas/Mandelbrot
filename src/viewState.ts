@@ -23,6 +23,17 @@ class ViewState {
         );
     }
 
+    canvasToWorld(canvasPos: Point, canvasSize: Size): Point {
+        const aspectRatio = canvasSize.height / canvasSize.width;
+        const x = (canvasPos.x / canvasSize.width - 0.5) * this.scale;
+        const y = (canvasPos.y / canvasSize.height - 0.5) * this.scale * aspectRatio;
+
+        return {
+            x: x + this.position.x,
+            y: y + this.position.y
+        }
+    }
+
     toURLSearchParams(): URLSearchParams {
         return new URLSearchParams({
             x: this.position.x.toString(),
