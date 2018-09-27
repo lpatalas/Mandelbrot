@@ -320,6 +320,8 @@ function initializeZoom(viewState, canvasElementId, selectionElementId) {
                 return;
             }
             canvas.setPointerCapture(e.pointerId);
+            const selectionElement = findSelectionElement();
+            selectionElement.classList.remove('visible');
             isSelecting = true;
             currentSelection = new Bounds({ x: e.offsetX, y: e.offsetY }, { x: e.offsetX, y: e.offsetY });
         });
@@ -338,6 +340,8 @@ function initializeZoom(viewState, canvasElementId, selectionElementId) {
             if (isSelecting && currentSelection) {
                 currentSelection = currentSelection.asNormalized();
             }
+            const selectionElement = findSelectionElement();
+            selectionElement.classList.add('visible');
             isSelecting = false;
         });
     }

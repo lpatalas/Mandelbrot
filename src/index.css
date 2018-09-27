@@ -79,8 +79,16 @@ body {
     flex-direction: row;
     height: 40px;
     justify-content: flex-end;
+    opacity: 0;
     position: relative;
+    visibility: hidden;
     width: 100%;
+}
+
+#selection.visible .selectionToolbar {
+    opacity: 1;
+    transition: opacity 500ms;
+    visibility: visible;
 }
 
 .selectionToolbar > a {
