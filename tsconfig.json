@@ -2,7 +2,7 @@
     "compileOnSave": true,
     "compilerOptions": {
         "target": "es6",
-        "outFile": "src/index.js",
+        "outFile": "bin/app.js",
         "strict": true
     }
 }

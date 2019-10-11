@@ -1,14 +1,15 @@
 {
-  "name": "mandelbrot",
-  "version": "1.0.0",
-  "main": "index.js",
-  "author": "Lukasz Patalas",
-  "license": "MIT",
-  "private": true,
-  "devDependencies": {
-    "typescript": "^3.0.3"
-  },
-  "scripts": {
-    "tsc:watch": "node node_modules/typescript/bin/tsc --watch"
-  }
+    "name": "mandelbrot",
+    "version": "1.0.0",
+    "main": "index.js",
+    "author": "Lukasz Patalas",
+    "license": "MIT",
+    "private": true,
+    "devDependencies": {
+        "typescript": "^3.0.3"
+    },
+    "scripts": {
+        "build": "yarn run tsc",
+        "build:watch": "yarn run tsc --watch"
+    }
 }
